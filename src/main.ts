@@ -36,6 +36,15 @@ async function bootstrap() {
     }),
   );
 
+  // 全局异常过滤器
+  const { HttpExceptionFilter } = await import('./common/filters/http-exception.filter');
+  app.useGlobalFilters(new HttpExceptionFilter());
+
+  // 全局拦截器
+  const { LoggingInterceptor } = await import('./common/interceptors/logging.interceptor');
+  const { TransformInterceptor } = await import('./common/interceptors/transform.interceptor');
+  app.useGlobalInterceptors(new LoggingInterceptor(), new TransformInterceptor());
+
   // 启用CORS
   app.enableCors();
 

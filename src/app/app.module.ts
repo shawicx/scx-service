@@ -1,8 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
+import { databaseConfig } from '../config/database.config';
 import { appConfig, swaggerConfig } from '../config/env.config';
+import mailConfig from '../config/mail.config';
+import redisConfig from '../config/redis.config';
+import { CacheConfigModule } from '../modules/cache/cache.module';
+import { MailModule } from '../modules/mail/mail.module';
+import { UserModule } from '../modules/user/user.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -13,8 +20,21 @@ import { AppService } from './app.service';
       isGlobal: true, // 全局可用
       cache: true, // 缓存配置
       expandVariables: true, // 支持环境变量展开
-      load: [appConfig, swaggerConfig], // 加载配置
+      load: [appConfig, swaggerConfig, databaseConfig, redisConfig, mailConfig], // 加载配置
     }),
+
+    // 缓存模块
+    CacheConfigModule,
+
+    // 数据库模块
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => configService.get('database'),
+    }),
+
+    // 业务模块
+    UserModule,
+    MailModule,
 
     // 日志模块
     WinstonModule.forRootAsync({

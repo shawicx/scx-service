@@ -27,10 +27,10 @@ export const generateSwaggerDocument = async (
     .setTitle(title)
     .setDescription(description)
     .setVersion(version)
-    .addBearerAuth()
-    .addTag('health', '健康检查相关接口')
-    .addTag('auth', '认证相关接口')
-    .addTag('users', '用户相关接口')
+    // .addBearerAuth()
+    // .addTag('health', '健康检查相关接口')
+    // .addTag('auth', '认证相关接口')
+    // .addTag('users', '用户相关接口')
     .addServer('/', '开发环境')
     .build();
 
