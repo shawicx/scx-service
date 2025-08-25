@@ -1,3 +1,10 @@
+/*
+ * @Author: shawicx d35f3153@proton.me
+ * @Date: 2025-08-22 19:52:03
+ * @LastEditors: shawicx d35f3153@proton.me
+ * @LastEditTime: 2025-08-24 00:03:07
+ * @Description:
+ */
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -9,6 +16,10 @@ import mailConfig from '../config/mail.config';
 import redisConfig from '../config/redis.config';
 import { CacheConfigModule } from '../modules/cache/cache.module';
 import { MailModule } from '../modules/mail/mail.module';
+import { PermissionModule } from '../modules/permission/permission.module';
+import { RolePermissionModule } from '../modules/role-permission/role-permission.module';
+import { RoleModule } from '../modules/role/role.module';
+import { UserRoleModule } from '../modules/user-role/user-role.module';
 import { UserModule } from '../modules/user/user.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -35,6 +46,12 @@ import { AppService } from './app.service';
     // 业务模块
     UserModule,
     MailModule,
+
+    // RBAC 模块
+    RoleModule,
+    PermissionModule,
+    UserRoleModule,
+    RolePermissionModule,
 
     // 日志模块
     WinstonModule.forRootAsync({

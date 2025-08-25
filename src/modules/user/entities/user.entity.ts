@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -52,6 +53,10 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  // 关系定义
+  @OneToMany('UserRole', 'user')
+  userRoles: any[];
 }
 
 export interface UserPreferences {
