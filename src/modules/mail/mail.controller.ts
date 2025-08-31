@@ -1,5 +1,5 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   MailSendResponseDto,
   SendHtmlEmailDto,
@@ -20,6 +20,7 @@ export class MailController {
     summary: '发送验证码邮件',
     description: '发送邮箱验证码（服务端内部生成6位数字）',
   })
+  @ApiBody({ type: SendVerificationCodeDto })
   @ApiResponse({
     status: 200,
     description: '发送结果',
@@ -36,6 +37,7 @@ export class MailController {
     summary: '发送欢迎邮件',
     description: '发送用户注册欢迎邮件',
   })
+  @ApiBody({ type: SendWelcomeEmailDto })
   @ApiResponse({
     status: 200,
     description: '发送结果',
@@ -50,6 +52,7 @@ export class MailController {
     summary: '发送密码重置邮件',
     description: '发送密码重置链接邮件',
   })
+  @ApiBody({ type: SendPasswordResetDto })
   @ApiResponse({
     status: 200,
     description: '发送结果',
@@ -68,6 +71,7 @@ export class MailController {
     summary: '发送HTML邮件',
     description: '发送自定义HTML内容邮件',
   })
+  @ApiBody({ type: SendHtmlEmailDto })
   @ApiResponse({
     status: 200,
     description: '发送结果',

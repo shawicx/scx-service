@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Post, Put, Query } from '@nestjs/common';
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Permission } from '../permission/entities/permission.entity';
 import {
   AssignPermissionsDto,
@@ -19,6 +19,7 @@ export class RoleController {
     summary: '创建角色',
     description: '创建新的角色，角色名称和代码必须唯一',
   })
+  @ApiBody({ type: CreateRoleDto })
   @ApiResponse({
     status: 201,
     description: '角色创建成功',
@@ -121,6 +122,7 @@ export class RoleController {
     summary: '更新角色',
     description: '更新角色信息，系统内置角色无法修改',
   })
+  @ApiBody({ type: UpdateRoleDto })
   @ApiQuery({
     name: 'id',
     description: '角色ID',
@@ -182,6 +184,7 @@ export class RoleController {
     summary: '为角色分配权限',
     description: '为指定角色分配权限列表，会覆盖原有权限',
   })
+  @ApiBody({ type: AssignPermissionsDto })
   @ApiQuery({
     name: 'id',
     description: '角色ID',

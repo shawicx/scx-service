@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from '../auth/auth.module';
 import { CacheConfigModule } from '../cache/cache.module';
 import { MailModule } from '../mail/mail.module';
 import { Role } from '../role/entities/role.entity';
@@ -9,7 +10,12 @@ import { UserController } from './user.controller';
 import { UserService } from './user.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Role, UserRole]), CacheConfigModule, MailModule],
+  imports: [
+    TypeOrmModule.forFeature([User, Role, UserRole]),
+    CacheConfigModule,
+    MailModule,
+    AuthModule,
+  ],
   controllers: [UserController],
   providers: [UserService],
   exports: [UserService],

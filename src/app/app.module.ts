@@ -1,8 +1,5 @@
 /*
  * @Author: shawicx d35f3153@proton.me
- * @Date: 2025-08-22 19:52:03
- * @LastEditors: shawicx d35f3153@proton.me
- * @LastEditTime: 2025-08-24 00:03:07
  * @Description:
  */
 import { Module } from '@nestjs/common';
@@ -21,8 +18,6 @@ import { RolePermissionModule } from '../modules/role-permission/role-permission
 import { RoleModule } from '../modules/role/role.module';
 import { UserRoleModule } from '../modules/user-role/user-role.module';
 import { UserModule } from '../modules/user/user.module';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -99,7 +94,5 @@ import { AppService } from './app.service';
       },
     }),
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

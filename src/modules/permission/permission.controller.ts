@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Post, Put, Query } from '@nestjs/common';
-import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   CreatePermissionDto,
   PermissionQueryDto,
@@ -18,6 +18,7 @@ export class PermissionController {
     summary: '创建权限',
     description: '创建新的权限，权限名称和动作-资源组合必须唯一',
   })
+  @ApiBody({ type: CreatePermissionDto })
   @ApiResponse({
     status: 201,
     description: '权限创建成功',
@@ -216,6 +217,7 @@ export class PermissionController {
     summary: '更新权限',
     description: '更新权限信息',
   })
+  @ApiBody({ type: UpdatePermissionDto })
   @ApiQuery({
     name: 'id',
     description: '权限ID',

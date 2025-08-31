@@ -20,6 +20,8 @@ import {
 } from '@nestjs/swagger';
 import { FastifyRequest } from 'fastify';
 import { Role } from '../role/entities/role.entity';
+import { LoginResponseDto } from './dto/login-response.dto';
+import { LoginUserDto, LoginWithPasswordDto } from './dto/login-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { AssignRoleDto, AssignRolesDto, UserRoleResponseDto } from './dto/user-role.dto';
@@ -68,56 +70,126 @@ export class UserController {
     @Body() registerUserDto: RegisterUserDto,
     @Req() request: FastifyRequest,
   ): Promise<UserResponseDto> {
-    // 获取客户端IP
     const clientIp = this.getClientIp(request);
     return this.userService.register(registerUserDto, clientIp);
   }
 
-  @Get()
+  @Post('login')
   @ApiOperation({
-    summary: '获取用户信息',
-    description: '通过查询参数获取用户详细信息',
+    summary: '邮箱验证码登录',
+    description: '使用邮箱和验证码登录',
+  })
+  @ApiBody({ type: LoginUserDto })
+  @ApiResponse({
+    status: 200,
+    description: '登录成功',
+    type: LoginResponseDto,
+  })
+  async login(
+    @Body() loginUserDto: LoginUserDto,
+    @Req() request: FastifyRequest,
+  ): Promise<LoginResponseDto> {
+    const clientIp = this.getClientIp(request);
+    return this.userService.loginWithEmailCode(loginUserDto, clientIp);
+  }
+
+  @Post('login-password')
+  @ApiOperation({
+    summary: '密码登录',
+    description: '使用邮箱和加密密码登录，密码必须使用获取的密钥进行加密',
+  })
+  @ApiBody({ type: LoginWithPasswordDto })
+  @ApiQuery({
+    name: 'keyId',
+    description: '加密密钥ID（必需，用于解密密码）',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    required: true,
   })
   @ApiResponse({
     status: 200,
-    description: '获取成功',
-    type: UserResponseDto,
+    description: '登录成功',
+    type: LoginResponseDto,
   })
-  @ApiResponse({
-    status: 404,
-    description: '用户不存在',
+  @ApiBadRequestResponse({
+    description: '请求参数错误或密码错误',
     schema: {
       type: 'object',
       properties: {
-        statusCode: { type: 'number', example: 404 },
-        message: { type: 'string', example: '用户不存在' },
-        error: { type: 'string', example: 'Not Found' },
+        statusCode: { type: 'number', example: 400 },
+        message: { type: 'string', example: '邮箱或密码错误' },
+        error: { type: 'string', example: 'Bad Request' },
       },
     },
   })
-  async findUser(@Req() request: FastifyRequest): Promise<UserResponseDto> {
-    const query = request.query as Record<string, string>;
-    const { id } = query;
-    const { email } = query;
+  async loginWithPassword(
+    @Body() loginWithPasswordDto: LoginWithPasswordDto,
+    @Query('keyId') keyId: string,
+    @Req() request: FastifyRequest,
+  ): Promise<LoginResponseDto> {
+    const clientIp = this.getClientIp(request);
+    return this.userService.loginWithPassword(loginWithPasswordDto, keyId, clientIp);
+  }
 
-    if (!id && !email) {
-      throw new Error('请提供用户ID或邮箱');
+  @Post('logout')
+  @ApiOperation({
+    summary: '用户登出',
+    description: '登出当前用户，清除登录令牌',
+  })
+  async logout(@Query('userId') userId: string): Promise<{ message: string }> {
+    await this.userService.logout(userId);
+    return { message: '登出成功' };
+  }
+
+  @Post('refresh-token')
+  @ApiOperation({
+    summary: '刷新访问令牌',
+    description: '使用刷新令牌获取新的访问令牌',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        refreshToken: { type: 'string', description: '刷新令牌' },
+      },
+      required: ['refreshToken'],
+    },
+  })
+  async refreshToken(
+    @Body() body: { refreshToken: string },
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    const tokens = await this.userService.refreshTokens(body.refreshToken);
+    if (!tokens) {
+      throw new Error('刷新令牌无效或已过期');
     }
+    return tokens;
+  }
 
-    let user: UserResponseDto | null = null;
+  @Get('encryption-key')
+  @ApiOperation({
+    summary: '获取加密密钥',
+    description: '获取用于密码加密的临时密钥',
+  })
+  async getEncryptionKey(): Promise<{ key: string; keyId: string }> {
+    return this.userService.getEncryptionKey();
+  }
 
-    if (id) {
-      user = await this.userService.findById(id);
-    } else if (email) {
-      const foundUser = await this.userService.findByEmail(email);
-      user = foundUser ? new UserResponseDto(foundUser) : null;
-    }
-
-    if (!user) {
-      throw new Error('用户不存在');
-    }
-
-    return user;
+  @Post('send-login-code')
+  @ApiOperation({
+    summary: '发送登录验证码',
+    description: '向指定邮箱发送登录验证码',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        email: { type: 'string', format: 'email', description: '邮箱地址' },
+      },
+      required: ['email'],
+    },
+  })
+  async sendLoginCode(@Body() body: { email: string }): Promise<{ message: string }> {
+    await this.userService.sendLoginVerificationCode(body.email);
+    return { message: '验证码已发送到您的邮箱' };
   }
 
   @Post('send-email-code')
@@ -129,46 +201,9 @@ export class UserController {
     schema: {
       type: 'object',
       properties: {
-        email: {
-          type: 'string',
-          format: 'email',
-          description: '邮箱地址',
-          example: 'user@example.com',
-        },
+        email: { type: 'string', format: 'email', description: '邮箱地址' },
       },
       required: ['email'],
-    },
-  })
-  @ApiResponse({
-    status: 201,
-    description: '验证码发送成功',
-    schema: {
-      type: 'object',
-      properties: {
-        message: { type: 'string', example: '验证码已发送到您的邮箱' },
-      },
-    },
-  })
-  @ApiBadRequestResponse({
-    description: '邮箱格式错误或发送失败',
-    schema: {
-      type: 'object',
-      properties: {
-        statusCode: { type: 'number', example: 400 },
-        message: { type: 'string', example: '验证码发送失败，请稍后重试' },
-        error: { type: 'string', example: 'Bad Request' },
-      },
-    },
-  })
-  @ApiConflictResponse({
-    description: '邮箱已被注册',
-    schema: {
-      type: 'object',
-      properties: {
-        statusCode: { type: 'number', example: 409 },
-        message: { type: 'string', example: '该邮箱已被注册' },
-        error: { type: 'string', example: 'Conflict' },
-      },
     },
   })
   async sendEmailCode(@Body() body: { email: string }): Promise<{ message: string }> {
@@ -176,27 +211,12 @@ export class UserController {
     return { message: '验证码已发送到您的邮箱' };
   }
 
-  /**
-   * 获取客户端真实IP地址
-   * @param request 请求对象
-   * @returns IP地址
-   */
-  private getClientIp(request: any): string {
-    return (
-      request.headers['x-forwarded-for']?.split(',')[0] ||
-      request.headers['x-real-ip'] ||
-      request.connection?.remoteAddress ||
-      request.socket?.remoteAddress ||
-      request.ip ||
-      '127.0.0.1'
-    );
-  }
-
   @Post('assign-role')
   @ApiOperation({
     summary: '为用户分配角色',
     description: '为指定用户分配一个角色',
   })
+  @ApiBody({ type: AssignRoleDto })
   @ApiQuery({
     name: 'id',
     description: '用户ID',
@@ -227,6 +247,7 @@ export class UserController {
     summary: '为用户批量分配角色',
     description: '为指定用户分配多个角色',
   })
+  @ApiBody({ type: AssignRolesDto })
   @ApiQuery({
     name: 'id',
     description: '用户ID',
@@ -398,5 +419,19 @@ export class UserController {
   ): Promise<{ hasPermission: boolean }> {
     const hasPermission = await this.userService.hasPermission(userId, action, resource);
     return { hasPermission };
+  }
+
+  /**
+   * 获取客户端真实IP地址
+   */
+  private getClientIp(request: any): string {
+    return (
+      request.headers['x-forwarded-for']?.split(',')[0] ||
+      request.headers['x-real-ip'] ||
+      request.connection?.remoteAddress ||
+      request.socket?.remoteAddress ||
+      request.ip ||
+      '127.0.0.1'
+    );
   }
 }
