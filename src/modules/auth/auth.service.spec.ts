@@ -32,8 +32,8 @@ describe('AuthService', () => {
 
   describe('generateAccessToken', () => {
     it('should generate access token successfully', async () => {
-      const userId = 'user123';
-      const email = 'test@example.com';
+      const userId = '11111111-1111-1111-1111-111111111111';
+      const email = 'serve.suitor386@passinbox.com';
 
       mockCacheService.setWithMilliseconds.mockResolvedValue(undefined);
 
@@ -48,8 +48,8 @@ describe('AuthService', () => {
 
   describe('generateRefreshToken', () => {
     it('should generate refresh token successfully', async () => {
-      const userId = 'user123';
-      const email = 'test@example.com';
+      const userId = '11111111-1111-1111-1111-111111111111';
+      const email = 'serve.suitor386@passinbox.com';
 
       mockCacheService.setWithMilliseconds.mockResolvedValue(undefined);
 
@@ -64,8 +64,8 @@ describe('AuthService', () => {
 
   describe('validateAccessToken', () => {
     it('should validate access token successfully', async () => {
-      const userId = 'user123';
-      const email = 'test@example.com';
+      const userId = '11111111-1111-1111-1111-111111111111';
+      const email = 'serve.suitor386@passinbox.com';
 
       // Generate a valid token for testing
       const payload = {
@@ -99,8 +99,8 @@ describe('AuthService', () => {
     });
 
     it('should return null for invalid signature', async () => {
-      const userId = 'user123';
-      const email = 'test@example.com';
+      const userId = '11111111-1111-1111-1111-111111111111';
+      const email = 'serve.suitor386@passinbox.com';
 
       const payload = {
         userId,
@@ -121,8 +121,8 @@ describe('AuthService', () => {
     });
 
     it('should return null for wrong token type', async () => {
-      const userId = 'user123';
-      const email = 'test@example.com';
+      const userId = '11111111-1111-1111-1111-111111111111';
+      const email = 'serve.suitor386@passinbox.com';
 
       // Generate a refresh token instead of access token
       const payload = {
@@ -148,8 +148,8 @@ describe('AuthService', () => {
     });
 
     it('should return null when token not found in cache', async () => {
-      const userId = 'user123';
-      const email = 'test@example.com';
+      const userId = '11111111-1111-1111-1111-111111111111';
+      const email = 'serve.suitor386@passinbox.com';
 
       const payload = {
         userId,
@@ -176,8 +176,8 @@ describe('AuthService', () => {
 
   describe('validateRefreshToken', () => {
     it('should validate refresh token successfully', async () => {
-      const userId = 'user123';
-      const email = 'test@example.com';
+      const userId = '11111111-1111-1111-1111-111111111111';
+      const email = 'serve.suitor386@passinbox.com';
 
       // Generate a valid refresh token for testing
       const payload = {
@@ -211,8 +211,8 @@ describe('AuthService', () => {
     });
 
     it('should return null for wrong refresh token type', async () => {
-      const userId = 'user123';
-      const email = 'test@example.com';
+      const userId = '11111111-1111-1111-1111-111111111111';
+      const email = 'serve.suitor386@passinbox.com';
 
       // Generate an access token instead of refresh token
       const payload = {
@@ -240,8 +240,8 @@ describe('AuthService', () => {
 
   describe('refreshTokens', () => {
     it('should refresh tokens successfully', async () => {
-      const userId = 'user123';
-      const email = 'test@example.com';
+      const userId = '11111111-1111-1111-1111-111111111111';
+      const email = 'serve.suitor386@passinbox.com';
 
       // Generate a valid refresh token for testing
       const payload = {
@@ -284,7 +284,7 @@ describe('AuthService', () => {
 
   describe('logout', () => {
     it('should logout user successfully', async () => {
-      const userId = 'user123';
+      const userId = '11111111-1111-1111-1111-111111111111';
 
       mockCacheService.del.mockResolvedValue(undefined);
 

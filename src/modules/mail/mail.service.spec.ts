@@ -40,7 +40,7 @@ describe('MailService', () => {
 
   describe('sendVerificationCode', () => {
     it('should send verification code successfully', async () => {
-      const to = 'test@example.com';
+      const to = 'serve.suitor386@passinbox.com';
 
       // Mock config values
       mockConfigService.get.mockImplementation((key: string) => {
@@ -69,7 +69,7 @@ describe('MailService', () => {
     });
 
     it('should return code in development environment', async () => {
-      const to = 'test@example.com';
+      const to = 'serve.suitor386@passinbox.com';
 
       // Mock config values
       mockConfigService.get.mockImplementation((key: string) => {
@@ -97,7 +97,7 @@ describe('MailService', () => {
     });
 
     it('should handle send mail error', async () => {
-      const to = 'test@example.com';
+      const to = 'serve.suitor386@passinbox.com';
 
       // Mock config values
       mockConfigService.get.mockImplementation((key: string) => {
@@ -127,7 +127,7 @@ describe('MailService', () => {
 
   describe('sendWelcomeEmail', () => {
     it('should send welcome email successfully', async () => {
-      const to = 'test@example.com';
+      const to = 'serve.suitor386@passinbox.com';
       const username = 'Test User';
 
       // Mock config values
@@ -154,7 +154,7 @@ describe('MailService', () => {
     });
 
     it('should handle send welcome email error', async () => {
-      const to = 'test@example.com';
+      const to = 'serve.suitor386@passinbox.com';
       const username = 'Test User';
 
       // Mock config values
@@ -183,7 +183,7 @@ describe('MailService', () => {
 
   describe('sendPasswordResetEmail', () => {
     it('should send password reset email successfully', async () => {
-      const to = 'test@example.com';
+      const to = 'serve.suitor386@passinbox.com';
       const resetToken = 'reset-token';
       const resetUrl = 'https://example.com/reset';
 
@@ -211,7 +211,7 @@ describe('MailService', () => {
     });
 
     it('should handle send password reset email error', async () => {
-      const to = 'test@example.com';
+      const to = 'serve.suitor386@passinbox.com';
       const resetToken = 'reset-token';
       const resetUrl = 'https://example.com/reset';
 
@@ -241,7 +241,7 @@ describe('MailService', () => {
 
   describe('sendMail', () => {
     it('should send generic mail successfully', async () => {
-      const to = 'test@example.com';
+      const to = 'serve.suitor386@passinbox.com';
       const subject = 'Test Subject';
       const template = 'test-template';
       const context = { name: 'Test' };
@@ -272,7 +272,7 @@ describe('MailService', () => {
 
   describe('sendHtmlMail', () => {
     it('should send HTML mail successfully', async () => {
-      const to = 'test@example.com';
+      const to = 'serve.suitor386@passinbox.com';
       const subject = 'Test Subject';
       const html = '<h1>Test</h1>';
 
@@ -306,7 +306,7 @@ describe('MailService', () => {
       mockConfigService.get.mockImplementation((key: string) => {
         switch (key) {
           case 'mail.defaults.from':
-            return 'test@example.com';
+            return 'serve.suitor386@passinbox.com';
           case 'mail.transport.socketTimeout':
             return 30000;
           default:

@@ -47,7 +47,7 @@ describe('UserController', () => {
   describe('register', () => {
     it('should register a user successfully', async () => {
       const registerUserDto: RegisterUserDto = {
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         name: 'Test User',
         password: 'password123',
         emailVerificationCode: '123456',
@@ -60,7 +60,7 @@ describe('UserController', () => {
 
       const expectedResult: any = {
         id: '1',
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         name: 'Test User',
         emailVerified: true,
         preferences: {
@@ -96,7 +96,7 @@ describe('UserController', () => {
   describe('login', () => {
     it('should login user with email code successfully', async () => {
       const loginUserDto: LoginUserDto = {
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         emailVerificationCode: '123456',
       };
 
@@ -107,7 +107,7 @@ describe('UserController', () => {
 
       const mockUser = {
         id: '1',
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         name: 'Test User',
         emailVerified: true,
         preferences: {},
@@ -135,7 +135,7 @@ describe('UserController', () => {
   describe('loginWithPassword', () => {
     it('should login user with password successfully', async () => {
       const loginWithPasswordDto: LoginWithPasswordDto = {
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         password: 'encryptedPassword',
       };
 
@@ -147,7 +147,7 @@ describe('UserController', () => {
 
       const mockUser = {
         id: '1',
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         name: 'Test User',
         emailVerified: true,
         preferences: {},
@@ -232,25 +232,29 @@ describe('UserController', () => {
 
   describe('sendLoginCode', () => {
     it('should send login code successfully', async () => {
-      const body = { email: 'test@example.com' };
+      const body = { email: 'serve.suitor386@passinbox.com' };
       mockUserService.sendLoginVerificationCode.mockResolvedValue(true);
 
       const result = await userController.sendLoginCode(body);
 
       expect(result).toEqual({ message: '验证码已发送到您的邮箱' });
-      expect(mockUserService.sendLoginVerificationCode).toHaveBeenCalledWith('test@example.com');
+      expect(mockUserService.sendLoginVerificationCode).toHaveBeenCalledWith(
+        'serve.suitor386@passinbox.com',
+      );
     });
   });
 
   describe('sendEmailCode', () => {
     it('should send email code successfully', async () => {
-      const body = { email: 'test@example.com' };
+      const body = { email: 'serve.suitor386@passinbox.com' };
       mockUserService.sendEmailVerificationCode.mockResolvedValue(true);
 
       const result = await userController.sendEmailCode(body);
 
       expect(result).toEqual({ message: '验证码已发送到您的邮箱' });
-      expect(mockUserService.sendEmailVerificationCode).toHaveBeenCalledWith('test@example.com');
+      expect(mockUserService.sendEmailVerificationCode).toHaveBeenCalledWith(
+        'serve.suitor386@passinbox.com',
+      );
     });
   });
 

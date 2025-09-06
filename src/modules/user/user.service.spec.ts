@@ -116,7 +116,7 @@ describe('UserService', () => {
   describe('register', () => {
     it('should register a new user successfully', async () => {
       const registerUserDto: RegisterUserDto = {
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         name: 'Test User',
         password: 'password123',
         emailVerificationCode: '123456',
@@ -124,7 +124,7 @@ describe('UserService', () => {
 
       const mockUser = {
         id: '1',
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         name: 'Test User',
         password: 'hashedPassword',
         emailVerified: true,
@@ -164,7 +164,7 @@ describe('UserService', () => {
       // 使用 toMatchObject 来检查部分属性，而不是完全匹配
       expect(result).toMatchObject({
         id: '1',
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         name: 'Test User',
         emailVerified: true,
         preferences: mockUser.preferences,
@@ -174,7 +174,7 @@ describe('UserService', () => {
         isActive: true,
       });
       expect(mockUserRepository.findOne).toHaveBeenCalledWith({
-        where: { email: 'test@example.com' },
+        where: { email: 'serve.suitor386@passinbox.com' },
       });
       expect(bcryptSpy).toHaveBeenCalledWith('password123', 12);
       expect(mockUserRepository.create).toHaveBeenCalled();
@@ -207,7 +207,7 @@ describe('UserService', () => {
 
     it('should throw BadRequestException if email verification code is invalid', async () => {
       const registerUserDto: RegisterUserDto = {
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         name: 'Test User',
         password: 'password123',
         emailVerificationCode: '123456',
@@ -225,7 +225,7 @@ describe('UserService', () => {
     it('should return user when found', async () => {
       const mockUser = {
         id: '1',
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         name: 'Test User',
         password: 'hashedPassword',
         emailVerified: true,
@@ -242,7 +242,7 @@ describe('UserService', () => {
       // 我们只检查返回对象的部分属性，而不是全部
       expect(result).toMatchObject({
         id: '1',
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         name: 'Test User',
         emailVerified: true,
         preferences: {},
@@ -263,7 +263,7 @@ describe('UserService', () => {
     it('should return user when found', async () => {
       const mockUser = {
         id: '1',
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         name: 'Test User',
         password: 'hashedPassword',
         emailVerified: true,
@@ -273,7 +273,7 @@ describe('UserService', () => {
 
       mockUserRepository.findOne.mockResolvedValue(mockUser);
 
-      const result = await userService.findByEmail('test@example.com');
+      const result = await userService.findByEmail('serve.suitor386@passinbox.com');
 
       expect(result).toEqual(mockUser);
     });
@@ -295,7 +295,7 @@ describe('UserService', () => {
 
       const mockUser = {
         id: userId,
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         name: 'Test User',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -339,7 +339,7 @@ describe('UserService', () => {
 
       const mockUser = {
         id: userId,
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         name: 'Test User',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -361,7 +361,7 @@ describe('UserService', () => {
 
       const mockUser = {
         id: userId,
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         name: 'Test User',
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -385,13 +385,13 @@ describe('UserService', () => {
   describe('loginWithEmailCode', () => {
     it('should login user successfully with email code', async () => {
       const loginUserDto = {
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         emailVerificationCode: '123456',
       };
 
       const mockUser = {
         id: '1',
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         name: 'Test User',
         password: 'hashedPassword',
         emailVerified: true,
@@ -429,7 +429,7 @@ describe('UserService', () => {
       // LoginResponseDto 直接包含用户信息，而不是 user 属性
       expect(result).toMatchObject({
         id: '1',
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         name: 'Test User',
         emailVerified: true,
         preferences: {},
@@ -453,13 +453,13 @@ describe('UserService', () => {
 
     it('should throw UnauthorizedException if email verification code is invalid', async () => {
       const loginUserDto = {
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         emailVerificationCode: '123456',
       };
 
       const mockUser = {
         id: '1',
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         name: 'Test User',
         password: 'hashedPassword',
         createdAt: new Date(),
@@ -481,14 +481,14 @@ describe('UserService', () => {
   describe('loginWithPassword', () => {
     it('should login user successfully with password', async () => {
       const loginWithPasswordDto = {
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         password: 'encryptedPassword',
       };
       const keyId = 'key123';
 
       const mockUser = {
         id: '1',
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         name: 'Test User',
         password: '$2b$12$hashedPassword', // bcrypt hashed password
         emailVerified: true,
@@ -509,7 +509,7 @@ describe('UserService', () => {
       mockAuthService.getEncryptionKey.mockResolvedValue('encryptionKey');
 
       // 模拟 CryptoUtil.decrypt 方法返回解密后的密码
-      CryptoUtil.decrypt.mockReturnValue('decryptedPassword');
+      (CryptoUtil.decrypt as jest.Mock).mockReturnValue('decryptedPassword');
 
       // 使用 spyOn 来模拟 bcrypt.compare
       jest.spyOn(bcrypt, 'compare').mockResolvedValue(true as never);
@@ -529,7 +529,7 @@ describe('UserService', () => {
       // LoginResponseDto 直接包含用户信息，而不是 user 属性
       expect(result).toMatchObject({
         id: '1',
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         name: 'Test User',
         emailVerified: true,
         preferences: {},
@@ -542,7 +542,7 @@ describe('UserService', () => {
 
     it('should throw BadRequestException if keyId is missing', async () => {
       const loginWithPasswordDto = {
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         password: 'encryptedPassword',
       };
 
@@ -556,7 +556,7 @@ describe('UserService', () => {
 
     it('should throw BadRequestException if encryption key is expired', async () => {
       const loginWithPasswordDto = {
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         password: 'encryptedPassword',
       };
       const keyId = 'expiredKey';
@@ -582,7 +582,7 @@ describe('UserService', () => {
       mockAuthService.getEncryptionKey.mockResolvedValue('encryptionKey');
 
       // 模拟 CryptoUtil.decrypt 方法
-      CryptoUtil.decrypt.mockReturnValue('decryptedPassword');
+      (CryptoUtil.decrypt as jest.Mock).mockReturnValue('decryptedPassword');
 
       mockUserRepository.findOne.mockResolvedValue(null);
 
@@ -596,14 +596,14 @@ describe('UserService', () => {
 
     it('should throw UnauthorizedException if password is incorrect', async () => {
       const loginWithPasswordDto = {
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         password: 'encryptedPassword',
       };
       const keyId = 'key123';
 
       const mockUser = {
         id: '1',
-        email: 'test@example.com',
+        email: 'serve.suitor386@passinbox.com',
         name: 'Test User',
         password: '$2b$12$hashedPassword',
         emailVerified: true,
@@ -617,7 +617,7 @@ describe('UserService', () => {
       mockAuthService.getEncryptionKey.mockResolvedValue('encryptionKey');
 
       // 模拟 CryptoUtil.decrypt 方法
-      CryptoUtil.decrypt.mockReturnValue('wrongPassword');
+      (CryptoUtil.decrypt as jest.Mock).mockReturnValue('wrongPassword');
 
       // 使用 spyOn 来模拟 bcrypt.compare 返回 false
       jest.spyOn(bcrypt, 'compare').mockResolvedValue(false as never);
