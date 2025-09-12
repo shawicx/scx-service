@@ -1,3 +1,4 @@
+import { Public } from '@/common/decorators/public.decorator';
 import {
   Body,
   ClassSerializerInterceptor,
@@ -34,6 +35,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post('register')
+  @Public()
   @ApiOperation({
     summary: '用户注册',
     description: '通过邮箱、用户名和邮箱验证码注册新用户',
@@ -75,6 +77,7 @@ export class UserController {
   }
 
   @Post('login')
+  @Public()
   @ApiOperation({
     summary: '邮箱验证码登录',
     description: '使用邮箱和验证码登录',
@@ -94,6 +97,7 @@ export class UserController {
   }
 
   @Post('login-password')
+  @Public()
   @ApiOperation({
     summary: '密码登录',
     description: '使用邮箱和加密密码登录，密码必须使用获取的密钥进行加密',
@@ -165,6 +169,7 @@ export class UserController {
   }
 
   @Get('encryption-key')
+  @Public()
   @ApiOperation({
     summary: '获取加密密钥',
     description: '获取用于密码加密的临时密钥',
@@ -174,6 +179,7 @@ export class UserController {
   }
 
   @Post('send-login-code')
+  @Public()
   @ApiOperation({
     summary: '发送登录验证码',
     description: '向指定邮箱发送登录验证码',
@@ -193,6 +199,7 @@ export class UserController {
   }
 
   @Post('send-email-code')
+  @Public()
   @ApiOperation({
     summary: '发送邮箱验证码',
     description: '向指定邮箱发送验证码，用于用户注册验证',

@@ -1,16 +1,15 @@
-/*
- * @Author: shawicx d35f3153@proton.me
- * @Description:
- */
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
+import { AuthGuard } from '../common/guards/auth.guard';
 import { databaseConfig } from '../config/database.config';
 import { appConfig, swaggerConfig } from '../config/env.config';
 import mailConfig from '../config/mail.config';
 import redisConfig from '../config/redis.config';
+import { AuthModule } from '../modules/auth/auth.module';
 import { CacheConfigModule } from '../modules/cache/cache.module';
 import { MailModule } from '../modules/mail/mail.module';
 import { PermissionModule } from '../modules/permission/permission.module';
@@ -37,6 +36,9 @@ import { UserModule } from '../modules/user/user.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => configService.get('database'),
     }),
+
+    // 认证模块
+    AuthModule,
 
     // 业务模块
     UserModule,
@@ -93,6 +95,12 @@ import { UserModule } from '../modules/user/user.module';
         };
       },
     }),
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
   ],
 })
 export class AppModule {}

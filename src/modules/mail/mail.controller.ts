@@ -1,3 +1,8 @@
+/*
+ * @Author: shawicx d35f3153@proton.me
+ * @Description:
+ */
+import { Public } from '@/common/decorators/public.decorator';
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
@@ -16,6 +21,7 @@ export class MailController {
   constructor(private readonly mailService: MailService) {}
 
   @Post('send-verification-code')
+  @Public()
   @ApiOperation({
     summary: '发送验证码邮件',
     description: '发送邮箱验证码（服务端内部生成6位数字）',
@@ -33,6 +39,7 @@ export class MailController {
   }
 
   @Post('send-welcome-email')
+  @Public()
   @ApiOperation({
     summary: '发送欢迎邮件',
     description: '发送用户注册欢迎邮件',
@@ -48,6 +55,7 @@ export class MailController {
   }
 
   @Post('send-password-reset')
+  @Public()
   @ApiOperation({
     summary: '发送密码重置邮件',
     description: '发送密码重置链接邮件',
@@ -67,6 +75,7 @@ export class MailController {
   }
 
   @Post('send-html-email')
+  @Public()
   @ApiOperation({
     summary: '发送HTML邮件',
     description: '发送自定义HTML内容邮件',
