@@ -48,6 +48,14 @@ export class CreateRoleDto {
 
 export class UpdateRoleDto {
   @ApiProperty({
+    description: '角色ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @IsString({ message: '角色ID必须是字符串' })
+  @IsNotEmpty({ message: '角色ID不能为空' })
+  id: string;
+
+  @ApiProperty({
     description: '角色名称',
     example: 'Administrator',
     minLength: 2,
@@ -142,6 +150,14 @@ export class RoleResponseDto {
 }
 
 export class AssignPermissionsDto {
+  @ApiProperty({
+    description: '角色ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @IsString({ message: '角色ID必须是字符串' })
+  @IsNotEmpty({ message: '角色ID不能为空' })
+  id: string;
+
   @ApiProperty({
     description: '权限ID列表',
     example: ['perm-id-1', 'perm-id-2'],

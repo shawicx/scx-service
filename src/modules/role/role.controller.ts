@@ -123,11 +123,6 @@ export class RoleController {
     description: '更新角色信息，系统内置角色无法修改',
   })
   @ApiBody({ type: UpdateRoleDto })
-  @ApiQuery({
-    name: 'id',
-    description: '角色ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
   @ApiResponse({
     status: 200,
     description: '角色更新成功',
@@ -145,11 +140,8 @@ export class RoleController {
     status: 409,
     description: '角色名称或代码已存在',
   })
-  async update(
-    @Query('id') id: string,
-    @Body() updateRoleDto: UpdateRoleDto,
-  ): Promise<RoleResponseDto> {
-    return await this.roleService.update(id, updateRoleDto);
+  async update(@Body() updateRoleDto: UpdateRoleDto): Promise<RoleResponseDto> {
+    return await this.roleService.update(updateRoleDto.id, updateRoleDto);
   }
 
   @Delete()
@@ -185,11 +177,6 @@ export class RoleController {
     description: '为指定角色分配权限列表，会覆盖原有权限',
   })
   @ApiBody({ type: AssignPermissionsDto })
-  @ApiQuery({
-    name: 'id',
-    description: '角色ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
   @ApiResponse({
     status: 200,
     description: '权限分配成功',
@@ -199,10 +186,9 @@ export class RoleController {
     description: '角色或权限不存在',
   })
   async assignPermissions(
-    @Query('id') id: string,
     @Body() assignPermissionsDto: AssignPermissionsDto,
   ): Promise<{ message: string }> {
-    await this.roleService.assignPermissions(id, assignPermissionsDto);
+    await this.roleService.assignPermissions(assignPermissionsDto.id, assignPermissionsDto);
     return { message: '权限分配成功' };
   }
 

@@ -103,12 +103,6 @@ export class UserController {
     description: '使用邮箱和加密密码登录，密码必须使用获取的密钥进行加密',
   })
   @ApiBody({ type: LoginWithPasswordDto })
-  @ApiQuery({
-    name: 'keyId',
-    description: '加密密钥ID（必需，用于解密密码）',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-    required: true,
-  })
   @ApiResponse({
     status: 200,
     description: '登录成功',
@@ -127,11 +121,14 @@ export class UserController {
   })
   async loginWithPassword(
     @Body() loginWithPasswordDto: LoginWithPasswordDto,
-    @Query('keyId') keyId: string,
     @Req() request: FastifyRequest,
   ): Promise<LoginResponseDto> {
     const clientIp = this.getClientIp(request);
-    return this.userService.loginWithPassword(loginWithPasswordDto, keyId, clientIp);
+    return this.userService.loginWithPassword(
+      loginWithPasswordDto,
+      loginWithPasswordDto.keyId,
+      clientIp,
+    );
   }
 
   @Post('logout')
@@ -224,11 +221,6 @@ export class UserController {
     description: '为指定用户分配一个角色',
   })
   @ApiBody({ type: AssignRoleDto })
-  @ApiQuery({
-    name: 'id',
-    description: '用户ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
   @ApiResponse({
     status: 201,
     description: '角色分配成功',
@@ -242,11 +234,8 @@ export class UserController {
     status: 409,
     description: '用户已拥有该角色',
   })
-  async assignRole(
-    @Query('id') userId: string,
-    @Body() assignRoleDto: AssignRoleDto,
-  ): Promise<UserRoleResponseDto> {
-    return await this.userService.assignRole(userId, assignRoleDto);
+  async assignRole(@Body() assignRoleDto: AssignRoleDto): Promise<UserRoleResponseDto> {
+    return await this.userService.assignRole(assignRoleDto.userId, assignRoleDto);
   }
 
   @Post('assign-roles-batch')
@@ -255,11 +244,6 @@ export class UserController {
     description: '为指定用户分配多个角色',
   })
   @ApiBody({ type: AssignRolesDto })
-  @ApiQuery({
-    name: 'id',
-    description: '用户ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
   @ApiResponse({
     status: 201,
     description: '角色分配成功',
@@ -273,11 +257,8 @@ export class UserController {
     status: 409,
     description: '用户已拥有所有指定角色',
   })
-  async assignRoles(
-    @Query('id') userId: string,
-    @Body() assignRolesDto: AssignRolesDto,
-  ): Promise<UserRoleResponseDto[]> {
-    return await this.userService.assignRoles(userId, assignRolesDto);
+  async assignRoles(@Body() assignRolesDto: AssignRolesDto): Promise<UserRoleResponseDto[]> {
+    return await this.userService.assignRoles(assignRolesDto.userId, assignRolesDto);
   }
 
   @Delete('remove-role')

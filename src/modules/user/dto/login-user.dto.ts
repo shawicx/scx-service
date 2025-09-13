@@ -40,4 +40,11 @@ export class LoginWithPasswordDto {
   @IsString({ message: '密码必须是字符串' })
   @MinLength(6, { message: '密码至少6位' })
   password: string;
+
+  @ApiProperty({
+    description: '加密密钥ID（必需，用于解密密码）',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @IsString({ message: '密钥ID必须是字符串' })
+  keyId: string;
 }

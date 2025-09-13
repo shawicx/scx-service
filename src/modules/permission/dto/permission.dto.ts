@@ -49,6 +49,14 @@ export class CreatePermissionDto {
 
 export class UpdatePermissionDto {
   @ApiProperty({
+    description: '权限ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @IsString({ message: '权限ID必须是字符串' })
+  @IsNotEmpty({ message: '权限ID不能为空' })
+  id: string;
+
+  @ApiProperty({
     description: '权限名称',
     example: '查看用户',
     minLength: 2,

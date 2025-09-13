@@ -218,11 +218,6 @@ export class PermissionController {
     description: '更新权限信息',
   })
   @ApiBody({ type: UpdatePermissionDto })
-  @ApiQuery({
-    name: 'id',
-    description: '权限ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
   @ApiResponse({
     status: 200,
     description: '权限更新成功',
@@ -236,11 +231,8 @@ export class PermissionController {
     status: 409,
     description: '权限名称或动作-资源组合已存在',
   })
-  async update(
-    @Query('id') id: string,
-    @Body() updatePermissionDto: UpdatePermissionDto,
-  ): Promise<PermissionResponseDto> {
-    return await this.permissionService.update(id, updatePermissionDto);
+  async update(@Body() updatePermissionDto: UpdatePermissionDto): Promise<PermissionResponseDto> {
+    return await this.permissionService.update(updatePermissionDto.id, updatePermissionDto);
   }
 
   @Delete()

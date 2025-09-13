@@ -9,6 +9,14 @@ export class AssignRoleDto {
   @IsString({ message: '角色ID必须是字符串' })
   @IsNotEmpty({ message: '角色ID不能为空' })
   roleId: string;
+
+  @ApiProperty({
+    description: '用户ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @IsString({ message: '用户ID必须是字符串' })
+  @IsNotEmpty({ message: '用户ID不能为空' })
+  userId: string;
 }
 
 export class AssignRolesDto {
@@ -20,6 +28,14 @@ export class AssignRolesDto {
   @IsNotEmpty({ message: '角色ID列表不能为空' })
   @IsString({ each: true, message: '角色ID必须是字符串' })
   roleIds: string[];
+
+  @ApiProperty({
+    description: '用户ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  @IsString({ message: '用户ID必须是字符串' })
+  @IsNotEmpty({ message: '用户ID不能为空' })
+  userId: string;
 }
 
 export class UserRoleResponseDto {
