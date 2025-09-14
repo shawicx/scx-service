@@ -1,3 +1,7 @@
+/*
+ * @Author: shawicx d35f3153@proton.me
+ * @Description:
+ */
 import { INestApplication } from '@nestjs/common';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { Test, TestingModule } from '@nestjs/testing';

@@ -23,7 +23,7 @@ export class CryptoUtil {
     try {
       const keyBuffer = Buffer.from(key, 'hex');
       const iv = crypto.randomBytes(this.IV_LENGTH);
-      const cipher = crypto.createCipher(this.ALGORITHM, keyBuffer);
+      const cipher = crypto.createCipheriv(this.ALGORITHM, keyBuffer, iv);
 
       let encrypted = cipher.update(text, 'utf8', 'hex');
       encrypted += cipher.final('hex');
@@ -48,9 +48,10 @@ export class CryptoUtil {
         throw new Error('加密数据格式错误');
       }
 
-      const [, encrypted] = parts;
+      const [ivHex, encrypted] = parts;
       const keyBuffer = Buffer.from(key, 'hex');
-      const decipher = crypto.createDecipher(this.ALGORITHM, keyBuffer);
+      const ivBuffer = Buffer.from(ivHex, 'hex');
+      const decipher = crypto.createDecipheriv(this.ALGORITHM, keyBuffer, ivBuffer);
 
       let decrypted = decipher.update(encrypted, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
