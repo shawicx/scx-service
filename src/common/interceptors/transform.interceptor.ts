@@ -19,13 +19,36 @@ export class TransformInterceptor<T> implements NestInterceptor<T, Response<T>> 
     const request = ctx.getRequest();
 
     return next.handle().pipe(
-      map((data) => ({
-        statusCode: response.statusCode,
-        message: this.getSuccessMessage(response.statusCode),
-        data,
-        timestamp: new Date().toISOString(),
-        path: request.url,
-      })),
+      map((data) => {
+        let message: string;
+        let responseData: T;
+
+        // 如果返回的数据包含 message 字段，提取 message 并处理 data
+        if (data && typeof data === 'object' && 'message' in data) {
+          message = data.message as string;
+
+          // 如果只有 message 字段，data 设为 null
+          if (Object.keys(data).length === 1) {
+            responseData = null as T;
+          } else {
+            // 如果还有其他字段，移除 message 字段后作为 data
+            const { message: _, ...rest } = data as any;
+            responseData = Object.keys(rest).length > 0 ? (rest as T) : (null as T);
+          }
+        } else {
+          // 使用默认消息
+          message = this.getSuccessMessage(response.statusCode);
+          responseData = data;
+        }
+
+        return {
+          statusCode: response.statusCode,
+          message,
+          data: responseData,
+          timestamp: new Date().toISOString(),
+          path: request.url,
+        };
+      }),
     );
   }
 

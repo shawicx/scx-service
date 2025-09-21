@@ -68,7 +68,7 @@ export class LoggingInterceptor implements NestInterceptor {
         };
 
         this.logger.error(`❌ ${method} ${url} - ${statusCode} - ${duration}ms - ${ip}`, 'ERROR');
-        this.logger.debug('Error Details', errorLog);
+        this.logger.debug('Error Details', JSON.stringify(errorLog, null, 2));
 
         return throwError(() => error);
       }),

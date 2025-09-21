@@ -67,11 +67,15 @@ export class MailController {
     type: MailSendResponseDto,
   })
   async sendPasswordResetEmail(@Body() body: SendPasswordResetDto): Promise<MailSendResponseDto> {
-    return await this.mailService.sendPasswordResetEmail(
+    const result = await this.mailService.sendPasswordResetEmail(
       body.email,
       body.resetToken,
       body.resetUrl,
     );
+    if (!result.success) {
+      throw new Error(result.error || result.message);
+    }
+    return result;
   }
 
   @Post('send-html-email')
@@ -87,6 +91,10 @@ export class MailController {
     type: MailSendResponseDto,
   })
   async sendHtmlEmail(@Body() body: SendHtmlEmailDto): Promise<MailSendResponseDto> {
-    return await this.mailService.sendHtmlMail(body.email, body.subject, body.html);
+    const result = await this.mailService.sendHtmlMail(body.email, body.subject, body.html);
+    if (!result.success) {
+      throw new Error(result.error || result.message);
+    }
+    return result;
   }
 }

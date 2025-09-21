@@ -53,9 +53,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
     };
 
     if (status >= 500) {
-      this.logger.error('Server Error', errorLog);
+      this.logger.error('Server Error', JSON.stringify(errorLog, null, 2));
     } else if (status >= 400) {
-      this.logger.warn('Client Error', errorLog);
+      this.logger.warn('Client Error', JSON.stringify(errorLog, null, 2));
     }
 
     // 返回统一的错误响应格式
