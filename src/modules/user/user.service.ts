@@ -1,13 +1,8 @@
 import { emailVerificationKey, loginVerificationKey } from '@/common/utils/cache-keys.constants';
 import { CryptoUtil } from '@/common/utils/crypto.util';
 import { EMAIL_VERIFICATION_TTL_MS, LOGIN_VERIFICATION_TTL_MS } from '@/common/utils/ttl.constants';
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
+import { SystemException } from '@/common/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { In, Repository } from 'typeorm';
@@ -49,13 +44,13 @@ export class UserService {
     // 检查邮箱是否已存在
     const existingUser = await this.userRepository.findOne({ where: { email } });
     if (existingUser) {
-      throw new ConflictException('该邮箱已被注册');
+      throw SystemException.emailExists('该邮箱已被注册');
     }
 
     // 验证邮箱验证码
     const isValidCode = await this.validateEmailCode(email, emailVerificationCode);
     if (!isValidCode) {
-      throw new BadRequestException('邮箱验证码无效或已过期');
+      throw SystemException.invalidVerificationCode('邮箱验证码无效或已过期');
     }
 
     // 加密密码
@@ -145,7 +140,7 @@ export class UserService {
   async updatePreferences(userId: string, preferences: Partial<UserPreferences>): Promise<void> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
-      throw new BadRequestException('用户不存在');
+      throw SystemException.dataNotFound('用户不存在');
     }
 
     const updatedPreferences = { ...user.preferences, ...preferences };
@@ -161,13 +156,13 @@ export class UserService {
     // 检查邮箱是否已被注册
     const existingUser = await this.userRepository.findOne({ where: { email } });
     if (existingUser) {
-      throw new ConflictException('该邮箱已被注册');
+      throw SystemException.emailExists('该邮箱已被注册');
     }
 
     // 调用邮件服务内部生成并发送 6 位验证码
     const result = await this.mailService.sendVerificationCode(email);
     if (!result.success || !result.code) {
-      throw new BadRequestException('验证码发送失败，请稍后重试');
+      throw SystemException.operationFailed('验证码发送失败，请稍后重试');
     }
 
     // 将验证码存储到 Redis，有效期 10 分钟
@@ -186,13 +181,13 @@ export class UserService {
     // 验证用户是否存在
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException('用户不存在');
+      throw SystemException.dataNotFound('用户不存在');
     }
 
     // 验证角色是否存在
     const role = await this.roleRepository.findOne({ where: { id: assignRoleDto.roleId } });
     if (!role) {
-      throw new NotFoundException('角色不存在');
+      throw SystemException.dataNotFound('角色不存在');
     }
 
     // 检查用户是否已经拥有该角色
@@ -201,7 +196,7 @@ export class UserService {
     });
 
     if (existingUserRole) {
-      throw new ConflictException('用户已拥有该角色');
+      throw SystemException.resourceExists('用户已拥有该角色');
     }
 
     // 创建用户角色关系
@@ -226,7 +221,7 @@ export class UserService {
     // 验证用户是否存在
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException('用户不存在');
+      throw SystemException.dataNotFound('用户不存在');
     }
 
     // 验证所有角色是否存在
@@ -237,7 +232,7 @@ export class UserService {
     if (roles.length !== assignRolesDto.roleIds.length) {
       const foundIds = roles.map((r) => r.id);
       const missingIds = assignRolesDto.roleIds.filter((id) => !foundIds.includes(id));
-      throw new NotFoundException(`角色不存在: ${missingIds.join(', ')}`);
+      throw SystemException.dataNotFound(`角色不存在: ${missingIds.join(', ')}`);
     }
 
     // 检查用户已有的角色
@@ -249,7 +244,7 @@ export class UserService {
     const newRoleIds = assignRolesDto.roleIds.filter((id) => !existingRoleIds.includes(id));
 
     if (newRoleIds.length === 0) {
-      throw new ConflictException('用户已拥有所有指定角色');
+      throw SystemException.resourceExists('用户已拥有所有指定角色');
     }
 
     // 创建新的用户角色关系
@@ -272,7 +267,7 @@ export class UserService {
     });
 
     if (!userRole) {
-      throw new NotFoundException('用户角色关系不存在');
+      throw SystemException.dataNotFound('用户角色关系不存在');
     }
 
     await this.userRoleRepository.remove(userRole);
@@ -286,7 +281,7 @@ export class UserService {
   async getUserRoles(userId: string): Promise<Role[]> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException('用户不存在');
+      throw SystemException.dataNotFound('用户不存在');
     }
 
     const userRoles = await this.userRoleRepository.find({
@@ -376,13 +371,13 @@ export class UserService {
     // 查找用户
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user) {
-      throw new UnauthorizedException('邮箱不存在');
+      throw SystemException.invalidCredentials('邮箱不存在');
     }
 
     // 验证邮箱验证码
     const isValidCode = await this.validateEmailCodeForLogin(email, emailVerificationCode);
     if (!isValidCode) {
-      throw new UnauthorizedException('邮箱验证码无效或已过期');
+      throw SystemException.invalidVerificationCode('邮箱验证码无效或已过期');
     }
 
     // 更新登录信息
@@ -414,32 +409,32 @@ export class UserService {
 
     // 强制要求提供 keyId
     if (!keyId) {
-      throw new BadRequestException('密码必须加密传输，请先获取加密密钥');
+      throw SystemException.invalidParameter('密码必须加密传输，请先获取加密密钥');
     }
 
     // 获取加密密钥并解密密码
     const encryptionKey = await this.authService.getEncryptionKey(keyId);
     if (!encryptionKey) {
-      throw new BadRequestException('加密密钥已过期，请重新获取');
+      throw SystemException.keyExpired('加密密钥已过期，请重新获取');
     }
 
     let decryptedPassword: string;
     try {
       decryptedPassword = CryptoUtil.decrypt(password, encryptionKey);
     } catch {
-      throw new BadRequestException('密码解密失败');
+      throw SystemException.decryptionFailed('密码解密失败');
     }
 
     // 查找用户
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user) {
-      throw new UnauthorizedException('邮箱或密码错误');
+      throw SystemException.invalidCredentials('邮箱或密码错误');
     }
 
     // 验证密码
     const isPasswordValid = await bcrypt.compare(decryptedPassword, user.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('邮箱或密码错误');
+      throw SystemException.invalidCredentials('邮箱或密码错误');
     }
 
     // 更新登录信息
@@ -491,13 +486,13 @@ export class UserService {
     // 检查用户是否存在
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user) {
-      throw new NotFoundException('用户不存在');
+      throw SystemException.dataNotFound('用户不存在');
     }
 
     // 调用邮件服务发送验证码
     const result = await this.mailService.sendVerificationCode(email);
     if (!result.success || !result.code) {
-      throw new BadRequestException('验证码发送失败，请稍后重试');
+      throw SystemException.operationFailed('验证码发送失败，请稍后重试');
     }
 
     // 将验证码存储到 Redis，有效期 10 分钟

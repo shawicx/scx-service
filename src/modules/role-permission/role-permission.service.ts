@@ -1,4 +1,5 @@
-import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { SystemException } from '@/common/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Permission } from '../permission/entities/permission.entity';
@@ -25,13 +26,13 @@ export class RolePermissionService {
     // Verify role exists
     const role = await this.roleRepository.findOne({ where: { id: roleId } });
     if (!role) {
-      throw new NotFoundException(`Role with ID '${roleId}' not found`);
+      throw SystemException.dataNotFound(`Role with ID '${roleId}' not found`);
     }
 
     // Verify permission exists
     const permission = await this.permissionRepository.findOne({ where: { id: permissionId } });
     if (!permission) {
-      throw new NotFoundException(`Permission with ID '${permissionId}' not found`);
+      throw SystemException.dataNotFound(`Permission with ID '${permissionId}' not found`);
     }
 
     // Check if assignment already exists
@@ -40,7 +41,7 @@ export class RolePermissionService {
     });
 
     if (existingAssignment) {
-      throw new ConflictException('Role already has this permission');
+      throw SystemException.resourceExists('Role already has this permission');
     }
 
     const rolePermission = this.rolePermissionRepository.create({ roleId, permissionId });
@@ -57,7 +58,7 @@ export class RolePermissionService {
     // Verify role exists
     const role = await this.roleRepository.findOne({ where: { id: roleId } });
     if (!role) {
-      throw new NotFoundException(`Role with ID '${roleId}' not found`);
+      throw SystemException.dataNotFound(`Role with ID '${roleId}' not found`);
     }
 
     // Verify all permissions exist
@@ -68,7 +69,7 @@ export class RolePermissionService {
     if (permissions.length !== permissionIds.length) {
       const foundIds = permissions.map((p) => p.id);
       const missingIds = permissionIds.filter((id) => !foundIds.includes(id));
-      throw new NotFoundException(`Permissions not found: ${missingIds.join(', ')}`);
+      throw SystemException.dataNotFound(`Permissions not found: ${missingIds.join(', ')}`);
     }
 
     // Check existing assignments
@@ -80,7 +81,7 @@ export class RolePermissionService {
     const newPermissionIds = permissionIds.filter((id) => !existingPermissionIds.includes(id));
 
     if (newPermissionIds.length === 0) {
-      throw new ConflictException('Role already has all specified permissions');
+      throw SystemException.resourceExists('Role already has all specified permissions');
     }
 
     // Create new assignments
@@ -103,7 +104,7 @@ export class RolePermissionService {
     // Verify role exists
     const role = await this.roleRepository.findOne({ where: { id: roleId } });
     if (!role) {
-      throw new NotFoundException(`Role with ID '${roleId}' not found`);
+      throw SystemException.dataNotFound(`Role with ID '${roleId}' not found`);
     }
 
     // Verify all permissions exist
@@ -114,7 +115,7 @@ export class RolePermissionService {
     if (permissions.length !== permissionIds.length) {
       const foundIds = permissions.map((p) => p.id);
       const missingIds = permissionIds.filter((id) => !foundIds.includes(id));
-      throw new NotFoundException(`Permissions not found: ${missingIds.join(', ')}`);
+      throw SystemException.dataNotFound(`Permissions not found: ${missingIds.join(', ')}`);
     }
 
     // Remove existing assignments
@@ -158,7 +159,7 @@ export class RolePermissionService {
   async findByRoleId(roleId: string): Promise<RolePermission[]> {
     const role = await this.roleRepository.findOne({ where: { id: roleId } });
     if (!role) {
-      throw new NotFoundException(`Role with ID '${roleId}' not found`);
+      throw SystemException.dataNotFound(`Role with ID '${roleId}' not found`);
     }
 
     return await this.rolePermissionRepository.find({
@@ -174,7 +175,7 @@ export class RolePermissionService {
   async findByPermissionId(permissionId: string): Promise<RolePermission[]> {
     const permission = await this.permissionRepository.findOne({ where: { id: permissionId } });
     if (!permission) {
-      throw new NotFoundException(`Permission with ID '${permissionId}' not found`);
+      throw SystemException.dataNotFound(`Permission with ID '${permissionId}' not found`);
     }
 
     return await this.rolePermissionRepository.find({
@@ -206,7 +207,7 @@ export class RolePermissionService {
     });
 
     if (!rolePermission) {
-      throw new NotFoundException(
+      throw SystemException.dataNotFound(
         `Role permission assignment not found for role '${roleId}' and permission '${permissionId}'`,
       );
     }
@@ -221,7 +222,7 @@ export class RolePermissionService {
   async deleteByRoleId(roleId: string): Promise<void> {
     const role = await this.roleRepository.findOne({ where: { id: roleId } });
     if (!role) {
-      throw new NotFoundException(`Role with ID '${roleId}' not found`);
+      throw SystemException.dataNotFound(`Role with ID '${roleId}' not found`);
     }
 
     const result = await this.rolePermissionRepository.delete({ roleId });
@@ -236,7 +237,7 @@ export class RolePermissionService {
   async deleteByPermissionId(permissionId: string): Promise<void> {
     const permission = await this.permissionRepository.findOne({ where: { id: permissionId } });
     if (!permission) {
-      throw new NotFoundException(`Permission with ID '${permissionId}' not found`);
+      throw SystemException.dataNotFound(`Permission with ID '${permissionId}' not found`);
     }
 
     const result = await this.rolePermissionRepository.delete({ permissionId });

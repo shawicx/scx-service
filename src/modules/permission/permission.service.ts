@@ -1,4 +1,5 @@
-import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { SystemException } from '@/common/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository, SelectQueryBuilder } from 'typeorm';
 import { RolePermission } from '../role-permission/entities/role-permission.entity';
@@ -31,7 +32,7 @@ export class PermissionService {
     });
 
     if (existingPermission) {
-      throw new ConflictException(
+      throw SystemException.resourceExists(
         `Permission with name '${createPermissionDto.name}' already exists`,
       );
     }
@@ -45,7 +46,7 @@ export class PermissionService {
     });
 
     if (existingActionResource) {
-      throw new ConflictException(
+      throw SystemException.resourceExists(
         `Permission with action '${createPermissionDto.action}' and resource '${createPermissionDto.resource}' already exists`,
       );
     }
@@ -108,7 +109,7 @@ export class PermissionService {
     const permission = await this.permissionRepository.findOne({ where: { id } });
 
     if (!permission) {
-      throw new NotFoundException(`Permission with ID '${id}' not found`);
+      throw SystemException.dataNotFound(`Permission with ID '${id}' not found`);
     }
 
     return new PermissionResponseDto(permission);
@@ -148,7 +149,7 @@ export class PermissionService {
     const permission = await this.permissionRepository.findOne({ where: { id } });
 
     if (!permission) {
-      throw new NotFoundException(`Permission with ID '${id}' not found`);
+      throw SystemException.dataNotFound(`Permission with ID '${id}' not found`);
     }
 
     // Check for conflicts if name is being updated
@@ -158,7 +159,7 @@ export class PermissionService {
       });
 
       if (existingPermission && existingPermission.id !== id) {
-        throw new ConflictException(
+        throw SystemException.resourceExists(
           `Permission with name '${updatePermissionDto.name}' already exists`,
         );
       }
@@ -175,7 +176,7 @@ export class PermissionService {
         });
 
         if (existingActionResource && existingActionResource.id !== id) {
-          throw new ConflictException(
+          throw SystemException.resourceExists(
             `Permission with action '${action}' and resource '${resource}' already exists`,
           );
         }
@@ -199,7 +200,7 @@ export class PermissionService {
     const permission = await this.permissionRepository.findOne({ where: { id } });
 
     if (!permission) {
-      throw new NotFoundException(`Permission with ID '${id}' not found`);
+      throw SystemException.dataNotFound(`Permission with ID '${id}' not found`);
     }
 
     // Check if permission is assigned to any roles
@@ -208,7 +209,7 @@ export class PermissionService {
     });
 
     if (roleCount > 0) {
-      throw new ConflictException(
+      throw SystemException.resourceExists(
         `Cannot delete permission '${permission.name}' as it is assigned to ${roleCount} role(s)`,
       );
     }

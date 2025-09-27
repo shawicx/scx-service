@@ -1,4 +1,5 @@
-import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { SystemException } from '@/common/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Role } from '../role/entities/role.entity';
@@ -25,13 +26,13 @@ export class UserRoleService {
     // Verify user exists
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException(`User with ID '${userId}' not found`);
+      throw SystemException.dataNotFound(`User with ID '${userId}' not found`);
     }
 
     // Verify role exists
     const role = await this.roleRepository.findOne({ where: { id: roleId } });
     if (!role) {
-      throw new NotFoundException(`Role with ID '${roleId}' not found`);
+      throw SystemException.dataNotFound(`Role with ID '${roleId}' not found`);
     }
 
     // Check if assignment already exists
@@ -40,7 +41,7 @@ export class UserRoleService {
     });
 
     if (existingAssignment) {
-      throw new ConflictException('User already has this role');
+      throw SystemException.resourceExists('User already has this role');
     }
 
     const userRole = this.userRoleRepository.create({ userId, roleId });
@@ -57,7 +58,7 @@ export class UserRoleService {
     // Verify user exists
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException(`User with ID '${userId}' not found`);
+      throw SystemException.dataNotFound(`User with ID '${userId}' not found`);
     }
 
     // Verify all roles exist
@@ -68,7 +69,7 @@ export class UserRoleService {
     if (roles.length !== roleIds.length) {
       const foundIds = roles.map((r) => r.id);
       const missingIds = roleIds.filter((id) => !foundIds.includes(id));
-      throw new NotFoundException(`Roles not found: ${missingIds.join(', ')}`);
+      throw SystemException.dataNotFound(`Roles not found: ${missingIds.join(', ')}`);
     }
 
     // Check existing assignments
@@ -80,7 +81,7 @@ export class UserRoleService {
     const newRoleIds = roleIds.filter((id) => !existingRoleIds.includes(id));
 
     if (newRoleIds.length === 0) {
-      throw new ConflictException('User already has all specified roles');
+      throw SystemException.resourceExists('User already has all specified roles');
     }
 
     // Create new assignments
@@ -116,7 +117,7 @@ export class UserRoleService {
   async findByUserId(userId: string): Promise<UserRole[]> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException(`User with ID '${userId}' not found`);
+      throw SystemException.dataNotFound(`User with ID '${userId}' not found`);
     }
 
     return await this.userRoleRepository.find({
@@ -132,7 +133,7 @@ export class UserRoleService {
   async findByRoleId(roleId: string): Promise<UserRole[]> {
     const role = await this.roleRepository.findOne({ where: { id: roleId } });
     if (!role) {
-      throw new NotFoundException(`Role with ID '${roleId}' not found`);
+      throw SystemException.dataNotFound(`Role with ID '${roleId}' not found`);
     }
 
     return await this.userRoleRepository.find({
@@ -161,7 +162,7 @@ export class UserRoleService {
     });
 
     if (!userRole) {
-      throw new NotFoundException(
+      throw SystemException.dataNotFound(
         `User role assignment not found for user '${userId}' and role '${roleId}'`,
       );
     }
@@ -176,7 +177,7 @@ export class UserRoleService {
   async deleteByUserId(userId: string): Promise<void> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
-      throw new NotFoundException(`User with ID '${userId}' not found`);
+      throw SystemException.dataNotFound(`User with ID '${userId}' not found`);
     }
 
     const result = await this.userRoleRepository.delete({ userId });
@@ -189,7 +190,7 @@ export class UserRoleService {
   async deleteByRoleId(roleId: string): Promise<void> {
     const role = await this.roleRepository.findOne({ where: { id: roleId } });
     if (!role) {
-      throw new NotFoundException(`Role with ID '${roleId}' not found`);
+      throw SystemException.dataNotFound(`Role with ID '${roleId}' not found`);
     }
 
     const result = await this.userRoleRepository.delete({ roleId });
