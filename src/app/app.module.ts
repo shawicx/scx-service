@@ -4,6 +4,7 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
+import { HttpExceptionFilter } from '../common/filters/http-exception.filter';
 import { SystemExceptionFilter } from '../common/filters/system-exception.filter';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { databaseConfig } from '../config/database.config';
@@ -105,6 +106,10 @@ import { UserModule } from '../modules/user/user.module';
     {
       provide: APP_FILTER,
       useClass: SystemExceptionFilter,
+    },
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
     },
   ],
 })

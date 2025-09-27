@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { FastifyReply, FastifyRequest } from 'fastify';
 
-@Catch()
+@Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(HttpExceptionFilter.name);
 
@@ -18,7 +18,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<FastifyReply>();
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message = 'Internal server error';
+    let message = '服务器内部错误';
     let error = 'Internal Server Error';
 
     if (exception instanceof HttpException) {
@@ -32,12 +32,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
         message = responseObj.message || responseObj.error || exception.message;
         error = responseObj.error || exception.name;
       }
-    } else if (exception instanceof Error) {
-      message = exception.message;
-      error = exception.name;
-      this.logger.error(`Unhandled exception: ${exception.message}`, exception.stack);
     } else {
-      this.logger.error('Unknown exception type', exception);
+      // 其他非HTTP异常，记录详细信息
+      this.logger.error(
+        `Unhandled exception: ${exception}`,
+        exception instanceof Error ? exception.stack : 'No stack trace',
+      );
     }
 
     // 记录错误日志
