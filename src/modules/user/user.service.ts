@@ -516,7 +516,11 @@ export class UserService {
       return false; // 验证码不存在或已过期
     }
 
-    if (cachedCode !== code) {
+    // 尝试字符串转换后比较
+    const codeStr = String(code).trim();
+    const cachedCodeStr = String(cachedCode).trim();
+
+    if (cachedCodeStr !== codeStr) {
       return false; // 验证码不匹配
     }
 

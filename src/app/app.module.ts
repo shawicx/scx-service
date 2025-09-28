@@ -4,21 +4,21 @@ import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { utilities as nestWinstonModuleUtilities, WinstonModule } from 'nest-winston';
 import * as winston from 'winston';
-import { HttpExceptionFilter } from '../common/filters/http-exception.filter';
-import { SystemExceptionFilter } from '../common/filters/system-exception.filter';
-import { AuthGuard } from '../common/guards/auth.guard';
-import { databaseConfig } from '../config/database.config';
-import { appConfig, swaggerConfig } from '../config/env.config';
-import mailConfig from '../config/mail.config';
-import redisConfig from '../config/redis.config';
-import { AuthModule } from '../modules/auth/auth.module';
-import { CacheConfigModule } from '../modules/cache/cache.module';
-import { MailModule } from '../modules/mail/mail.module';
-import { PermissionModule } from '../modules/permission/permission.module';
-import { RolePermissionModule } from '../modules/role-permission/role-permission.module';
-import { RoleModule } from '../modules/role/role.module';
-import { UserRoleModule } from '../modules/user-role/user-role.module';
-import { UserModule } from '../modules/user/user.module';
+import { HttpExceptionFilter } from '@/common/filters/http-exception.filter';
+import { SystemExceptionFilter } from '@/common/filters/system-exception.filter';
+import { AuthGuard } from '@/common/guards/auth.guard';
+import { databaseConfig } from '@/config/database.config';
+import { appConfig, swaggerConfig } from '@/config/env.config';
+import mailConfig from '@/config/mail.config';
+import redisConfig from '@/config/redis.config';
+import { AuthModule } from '@/modules/auth/auth.module';
+import { CacheConfigModule } from '@/modules/cache/cache.module';
+import { MailModule } from '@/modules/mail/mail.module';
+import { PermissionModule } from '@/modules/permission/permission.module';
+import { RolePermissionModule } from '@/modules/role-permission/role-permission.module';
+import { RoleModule } from '@/modules/role/role.module';
+import { UserRoleModule } from '@/modules/user-role/user-role.module';
+import { UserModule } from '@/modules/user/user.module';
 
 @Module({
   imports: [
@@ -103,6 +103,10 @@ import { UserModule } from '../modules/user/user.module';
       provide: APP_GUARD,
       useClass: AuthGuard,
     },
+    // {
+    //   provide: APP_INTERCEPTOR,
+    //   useClass: ResponseInterceptor,
+    // },
     {
       provide: APP_FILTER,
       useClass: SystemExceptionFilter,

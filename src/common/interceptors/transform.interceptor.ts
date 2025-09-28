@@ -47,6 +47,7 @@ export class TransformInterceptor<T> implements NestInterceptor<T, Response<T>> 
           data: responseData,
           timestamp: new Date().toISOString(),
           path: request.url,
+          success: true,
         };
       }),
     );
@@ -55,9 +56,8 @@ export class TransformInterceptor<T> implements NestInterceptor<T, Response<T>> 
   private getSuccessMessage(statusCode: number): string {
     switch (statusCode) {
       case 200:
-        return '请求成功';
       case 201:
-        return '创建成功';
+        return '请求成功';
       case 202:
         return '请求已接受';
       case 204:
