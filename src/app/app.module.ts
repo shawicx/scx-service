@@ -19,6 +19,7 @@ import { RolePermissionModule } from '@/modules/role-permission/role-permission.
 import { RoleModule } from '@/modules/role/role.module';
 import { UserRoleModule } from '@/modules/user-role/user-role.module';
 import { UserModule } from '@/modules/user/user.module';
+import { WorkflowModule } from '@/workflow/workflow.module';
 
 @Module({
   imports: [
@@ -51,6 +52,9 @@ import { UserModule } from '@/modules/user/user.module';
     PermissionModule,
     UserRoleModule,
     RolePermissionModule,
+
+    // 工作流模块
+    WorkflowModule,
 
     // 日志模块
     WinstonModule.forRootAsync({
