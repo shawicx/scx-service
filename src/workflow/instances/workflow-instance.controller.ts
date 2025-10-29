@@ -136,7 +136,7 @@ export class WorkflowInstanceController {
     @Body() body: { reason?: string },
     @Request() req: any,
   ): Promise<WorkflowInstanceResponseDto> {
-    return this.instanceService.suspendInstance(id, req.user.id, body.reason);
+    return this.instanceService.suspendInstance(id, req.user.id);
   }
 
   @Post(':id/resume')

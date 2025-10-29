@@ -18,6 +18,12 @@ export enum WorkflowTaskStatus {
   TIMEOUT = 'timeout',
   /** 等待中（等待条件满足） */
   WAITING = 'waiting',
+  /** 已委派 */
+  DELEGATED = 'delegated',
+  /** 已转移 */
+  TRANSFERRED = 'transferred',
+  /** 已暂停 */
+  SUSPENDED = 'suspended',
 }
 
 /**
