@@ -1,0 +1,12 @@
+export enum AiErrorCode {
+  API_KEY_NOT_CONFIGURED = 9500, // API密钥未配置
+  API_KEY_INVALID = 9501, // API密钥格式无效
+  PROVIDER_NOT_AVAILABLE = 9502, // 平台不可用
+  REQUEST_TIMEOUT = 9503, // 请求超时
+  RATE_LIMIT_EXCEEDED = 9504, // 超出速率限制
+  INVALID_REQUEST = 9505, // 请求参数无效
+  AUTHENTICATION_FAILED = 9506, // 认证失败
+  SERVICE_ERROR = 9507, // 平台服务错误
+  INSUFFICIENT_QUOTA = 9508, // 额度不足
+  CONTENT_POLICY_VIOLATION = 9509, // 违反内容策略
+}
