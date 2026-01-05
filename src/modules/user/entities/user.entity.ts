@@ -29,7 +29,7 @@ export class User {
   @Column({ type: 'varchar', length: 6, nullable: true })
   emailVerificationCode: string;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   emailVerificationExpiry: Date;
 
   @Column({ type: 'json', nullable: true })
@@ -39,7 +39,7 @@ export class User {
   @Index()
   lastLoginIp: string;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   lastLoginAt: Date;
 
   @Column({ type: 'int', default: 1 })

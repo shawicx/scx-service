@@ -16,13 +16,13 @@ export class RolePermission {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column('varchar', { length: 36 })
+  @Column('uuid')
   roleId: string;
 
-  @Column('varchar', { length: 36 })
+  @Column('uuid')
   permissionId: string;
 
-  @CreateDateColumn({ type: 'datetime', precision: 6 })
+  @CreateDateColumn({ type: 'timestamp', precision: 6 })
   createdAt: Date;
 
   // 关系定义

@@ -28,10 +28,10 @@ export class Permission {
   @Column({ length: 255, nullable: true })
   description: string;
 
-  @CreateDateColumn({ type: 'datetime', precision: 6 })
+  @CreateDateColumn({ type: 'timestamp', precision: 6 })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'datetime', precision: 6 })
+  @UpdateDateColumn({ type: 'timestamp', precision: 6 })
   updatedAt: Date;
 
   // 关系定义

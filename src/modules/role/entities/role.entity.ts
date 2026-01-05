@@ -33,13 +33,13 @@ export class Role {
   @Column({ length: 255, nullable: true })
   description: string;
 
-  @Column({ type: 'tinyint', default: false, comment: '是否系统内置角色' })
+  @Column({ type: 'boolean', default: false, comment: '是否系统内置角色' })
   isSystem: boolean;
 
-  @CreateDateColumn({ type: 'datetime', precision: 6 })
+  @CreateDateColumn({ type: 'timestamp', precision: 6 })
   createdAt: Date;
 
-  @UpdateDateColumn({ type: 'datetime', precision: 6 })
+  @UpdateDateColumn({ type: 'timestamp', precision: 6 })
   updatedAt: Date;
 
   // 关系定义
