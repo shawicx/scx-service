@@ -8,6 +8,7 @@ export interface AiMessage {
 }
 
 export interface AiRequestOptions {
+  model?: string; // 模型名称
   temperature?: number; // 0-2
   maxTokens?: number; // 最大生成token数
   topP?: number; // 0-1

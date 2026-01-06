@@ -48,7 +48,20 @@ export class AiException extends SystemException {
     });
   }
 
-  readonly code: AiErrorCode;
+  static fromContentPolicyViolation(provider: string, message?: string): AiException {
+    return new AiException(
+      AiErrorCode.CONTENT_POLICY_VIOLATION,
+      message || `${provider}平台拒绝了该请求(违反内容策略)`,
+      { provider },
+    );
+  }
+
+  static fromProviderError(provider: string, message: string): AiException {
+    return new AiException(AiErrorCode.SERVICE_ERROR, `${provider}平台服务错误: ${message}`, {
+      provider,
+      originalMessage: message,
+    });
+  }
 
   constructor(code: AiErrorCode, message: string, data?: any) {
     super(code as any, message, data);

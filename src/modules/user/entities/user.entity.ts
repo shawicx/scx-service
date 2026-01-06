@@ -73,4 +73,25 @@ export interface UserPreferences {
     showEmail: boolean;
     showLastSeen: boolean;
   };
+  // AI 配置
+  ai?: {
+    defaultProvider?: 'copilot' | 'glm' | 'qwen';
+    providers?: {
+      copilot?: {
+        apiKey: string;
+        enabled: boolean;
+        baseUrl?: string;
+      };
+      glm?: {
+        apiKey: string;
+        enabled: boolean;
+        baseUrl?: string;
+      };
+      qwen?: {
+        apiKey: string;
+        enabled: boolean;
+        baseUrl?: string;
+      };
+    };
+  };
 }
