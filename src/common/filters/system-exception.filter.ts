@@ -56,7 +56,33 @@ export class SystemExceptionFilter implements ExceptionFilter {
   /**
    * 将业务错误码映射为HTTP状态码
    */
-  private mapToHttpStatus(errorCode: SystemErrorCode): number {
+  private mapToHttpStatus(errorCode: SystemErrorCode | number): number {
+    // AI 错误码映射 (9500-9509)
+    if (errorCode >= 9500 && errorCode <= 9509) {
+      switch (errorCode) {
+        case 9500: // API_KEY_NOT_CONFIGURED
+        case 9501: // API_KEY_INVALID
+        case 9505: // INVALID_REQUEST
+          return HttpStatus.BAD_REQUEST; // 400
+        case 9506: // AUTHENTICATION_FAILED
+          return HttpStatus.UNAUTHORIZED; // 401
+        case 9509: // CONTENT_POLICY_VIOLATION
+          return HttpStatus.FORBIDDEN; // 403
+        case 9508: // INSUFFICIENT_QUOTA
+          return 402; // Payment Required
+        case 9504: // RATE_LIMIT_EXCEEDED
+          return HttpStatus.TOO_MANY_REQUESTS; // 429
+        case 9502: // PROVIDER_NOT_AVAILABLE
+          return HttpStatus.SERVICE_UNAVAILABLE; // 503
+        case 9503: // REQUEST_TIMEOUT
+          return HttpStatus.GATEWAY_TIMEOUT; // 504
+        case 9507: // SERVICE_ERROR
+        default:
+          return HttpStatus.INTERNAL_SERVER_ERROR; // 500
+      }
+    }
+
+    // 系统错误码映射
     switch (errorCode) {
       case SystemErrorCode.BUSINESS_RULE_VIOLATION:
       case SystemErrorCode.OPERATION_FAILED:

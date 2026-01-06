@@ -11,6 +11,7 @@ import { databaseConfig } from '@/config/database.config';
 import { appConfig, swaggerConfig } from '@/config/env.config';
 import mailConfig from '@/config/mail.config';
 import redisConfig from '@/config/redis.config';
+import { aiConfig } from '@/config/ai.config';
 import { AuthModule } from '@/modules/auth/auth.module';
 import { CacheConfigModule } from '@/modules/cache/cache.module';
 import { MailModule } from '@/modules/mail/mail.module';
@@ -19,6 +20,7 @@ import { RolePermissionModule } from '@/modules/role-permission/role-permission.
 import { RoleModule } from '@/modules/role/role.module';
 import { UserRoleModule } from '@/modules/user-role/user-role.module';
 import { UserModule } from '@/modules/user/user.module';
+import { AiModule } from '@/modules/ai/ai.module';
 
 @Module({
   imports: [
@@ -27,11 +29,14 @@ import { UserModule } from '@/modules/user/user.module';
       isGlobal: true, // 全局可用
       cache: true, // 缓存配置
       expandVariables: true, // 支持环境变量展开
-      load: [appConfig, swaggerConfig, databaseConfig, redisConfig, mailConfig], // 加载配置
+      load: [appConfig, swaggerConfig, databaseConfig, redisConfig, mailConfig, aiConfig], // 加载配置
     }),
 
     // 缓存模块
     CacheConfigModule,
+
+    // AI 模块
+    AiModule,
 
     // 数据库模块
     TypeOrmModule.forRootAsync({
