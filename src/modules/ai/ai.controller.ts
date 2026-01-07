@@ -25,9 +25,61 @@ export class AiController {
   @Post('completion')
   @ApiOperation({
     summary: '生成 AI 回复',
-    description: '使用配置的 AI 平台生成回复,支持显式指定平台或使用默认配置',
+    description: `使用配置的 AI 平台生成回复，支持显式指定平台或使用默认配置。
+
+    **Provider 选择优先级：**
+    1. 请求中显式指定的 provider
+    2. 用户默认配置的 provider
+    3. 系统默认 provider (配置文件中的 AI_DEFAULT_PROVIDER)
+
+    **特性：**
+    - 自动缓存：相同请求会返回缓存结果（可配置）
+    - Token 使用统计：记录每次请求的 token 消耗
+    - 请求历史：自动保存到数据库用于后续查询
+    - 智能错误处理：统一的错误映射和友好的错误信息`,
   })
-  @ApiBody({ type: CompletionRequestDto })
+  @ApiBody({
+    type: CompletionRequestDto,
+    examples: {
+      simple: {
+        summary: '简单请求',
+        description: '最简单的请求示例',
+        value: {
+          messages: [{ role: 'user', content: '你好，请介绍一下你自己' }],
+        },
+      },
+      WithOptions: {
+        summary: '带参数的请求',
+        description: '包含自定义生成参数的请求',
+        value: {
+          provider: 'copilot',
+          messages: [
+            { role: 'system', content: '你是一个有帮助的助手' },
+            { role: 'user', content: '解释什么是 TypeScript' },
+          ],
+          options: {
+            temperature: 0.7,
+            maxTokens: 500,
+            topP: 0.9,
+          },
+        },
+      },
+      conversation: {
+        summary: '多轮对话',
+        description: '包含历史对话的多轮交互示例',
+        value: {
+          messages: [
+            { role: 'user', content: '什么是 NestJS?' },
+            {
+              role: 'assistant',
+              content: 'NestJS 是一个用于构建高效、可扩展 Node.js 应用程序的框架。',
+            },
+            { role: 'user', content: '它有哪些主要特性?' },
+          ],
+        },
+      },
+    },
+  })
   @ApiResponse({
     status: 200,
     description: 'AI 回复成功',
@@ -232,7 +284,20 @@ export class AiController {
   @Get('requests')
   @ApiOperation({
     summary: '获取请求历史',
-    description: '分页获取用户的 AI 请求历史记录',
+    description: `分页获取用户的 AI 请求历史记录，包括：
+    - 使用的 provider
+    - 消息内容
+    - Token 使用情况
+    - 请求耗时
+    - 是否缓存
+    - 创建时间
+
+    **分页参数：**
+    - page: 页码（从 1 开始，默认 1）
+    - limit: 每页数量（默认 20，最大 100）
+
+    **数据排序：**
+    按创建时间倒序排列（最新的在前）`,
   })
   @ApiResponse({
     status: 200,
