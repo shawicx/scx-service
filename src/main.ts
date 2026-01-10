@@ -19,7 +19,7 @@ async function bootstrap() {
   // 获取配置服务
   const configService = app.get(ConfigService);
   const isProduction = configService.get<boolean>('app.isProduction', false);
-  const port = configService.get<number>('app.port', 3000);
+  const port = configService.get<number>('app.port', 3100);
 
   // 使用Winston日志
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));

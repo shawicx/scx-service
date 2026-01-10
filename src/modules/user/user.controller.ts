@@ -136,6 +136,16 @@ export class UserController {
     summary: '用户登出',
     description: '登出当前用户，清除登录令牌',
   })
+  @ApiResponse({
+    status: 200,
+    description: '登出成功',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: '登出成功' },
+      },
+    },
+  })
   async logout(@Query('userId') userId: string): Promise<{ message: string }> {
     await this.userService.logout(userId);
     return { message: '登出成功' };
@@ -155,6 +165,28 @@ export class UserController {
       required: ['refreshToken'],
     },
   })
+  @ApiResponse({
+    status: 200,
+    description: '令牌刷新成功',
+    schema: {
+      type: 'object',
+      properties: {
+        accessToken: { type: 'string', description: '新的访问令牌' },
+        refreshToken: { type: 'string', description: '新的刷新令牌' },
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: '刷新令牌无效或已过期',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 400 },
+        message: { type: 'string', example: '刷新令牌无效或已过期' },
+        error: { type: 'string', example: 'Bad Request' },
+      },
+    },
+  })
   async refreshToken(
     @Body() body: { refreshToken: string },
   ): Promise<{ accessToken: string; refreshToken: string }> {
@@ -170,6 +202,17 @@ export class UserController {
   @ApiOperation({
     summary: '获取加密密钥',
     description: '获取用于密码加密的临时密钥',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '加密密钥获取成功',
+    schema: {
+      type: 'object',
+      properties: {
+        key: { type: 'string', description: '加密密钥' },
+        keyId: { type: 'string', description: '密钥ID' },
+      },
+    },
   })
   async getEncryptionKey(): Promise<{ key: string; keyId: string }> {
     return this.userService.getEncryptionKey();
@@ -190,6 +233,27 @@ export class UserController {
       required: ['email'],
     },
   })
+  @ApiResponse({
+    status: 200,
+    description: '验证码发送成功',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: '验证码已发送到您的邮箱' },
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: '邮箱格式无效',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 400 },
+        message: { type: 'string', example: '邮箱格式无效' },
+        error: { type: 'string', example: 'Bad Request' },
+      },
+    },
+  })
   async sendLoginCode(@Body() body: { email: string }): Promise<{ message: string }> {
     await this.userService.sendLoginVerificationCode(body.email);
     return { message: '验证码已发送到您的邮箱' };
@@ -208,6 +272,27 @@ export class UserController {
         email: { type: 'string', format: 'email', description: '邮箱地址' },
       },
       required: ['email'],
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: '验证码发送成功',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: '验证码已发送到您的邮箱' },
+      },
+    },
+  })
+  @ApiBadRequestResponse({
+    description: '邮箱格式无效',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 400 },
+        message: { type: 'string', example: '邮箱格式无效' },
+        error: { type: 'string', example: 'Bad Request' },
+      },
     },
   })
   async sendEmailCode(@Body() body: { email: string }): Promise<{ message: string }> {
