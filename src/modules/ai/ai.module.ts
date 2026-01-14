@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheConfigModule } from '@/modules/cache/cache.module';
+import { UserModule } from '@/modules/user/user.module';
 import { AiController } from './ai.controller';
 import { AiStreamController } from './ai-stream.controller';
 import { AiService } from './ai.service';
@@ -14,6 +15,7 @@ import { aiConfig } from '@/config/ai.config';
     ConfigModule.forFeature(aiConfig),
     TypeOrmModule.forFeature([AiRequestEntity]),
     CacheConfigModule,
+    UserModule,
   ],
   controllers: [AiController, AiStreamController],
   providers: [providerFactory, AiService],

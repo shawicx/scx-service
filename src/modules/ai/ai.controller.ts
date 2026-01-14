@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Post, Put, Query, Req } from '@nestjs/common';
+import { Public } from '@/common/decorators/public.decorator';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -9,15 +10,23 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { FastifyRequest } from 'fastify';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { AiService } from './ai.service';
 import { CompletionRequestDto } from './dto/ai-request.dto';
 import { AiResponse } from './interfaces/ai-provider.interface';
+import { User } from '../user/entities/user.entity';
+import { SystemException } from '@/common/exceptions';
 
 @ApiTags('AI 服务')
 @Controller('ai')
 @ApiBearerAuth()
 export class AiController {
-  constructor(private readonly aiService: AiService) {}
+  constructor(
+    private readonly aiService: AiService,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {}
 
   /**
    * 生成 AI 回复(非流式)
@@ -112,16 +121,13 @@ export class AiController {
   async generateCompletion(
     @Body() dto: CompletionRequestDto,
     @Req() request: FastifyRequest,
-  ): Promise<{ success: boolean; data: AiResponse }> {
-    const { user } = request;
-    const response = await this.aiService.generateCompletion(
-      user,
-      dto.messages,
-      dto.options || {},
-      dto.provider,
-    );
-
-    return { success: true, data: response };
+  ): Promise<AiResponse> {
+    const userPayload = request.user;
+    const user = await this.userRepository.findOne({ where: { id: userPayload.userId } });
+    if (!user) {
+      throw SystemException.dataNotFound('用户不存在');
+    }
+    return this.aiService.generateCompletion(user, dto.messages, dto.options || {}, dto.provider);
   }
 
   /**
@@ -187,10 +193,10 @@ export class AiController {
   @ApiBadRequestResponse({ description: '请求参数错误' })
   async updateConfig() // @Body() configDto: any,
   // @Req() request: FastifyRequest,
-  : Promise<{ success: boolean; message: string }> {
+  : Promise<{ message: string }> {
     // const user = request['user'];
     // TODO: 实现配置更新逻辑(需要 UserService 支持)
-    return { success: true, message: 'AI 配置更新成功' };
+    return { message: 'AI 配置更新成功' };
   }
 
   /**
@@ -235,17 +241,22 @@ export class AiController {
   async testConnection(
     @Body() dto: { provider: 'copilot' | 'glm' | 'qwen' },
     @Req() request: FastifyRequest,
-  ): Promise<{ success: boolean; data: { provider: string; connected: boolean } }> {
-    const { user } = request;
+  ): Promise<{ provider: string; connected: boolean }> {
+    const userPayload = request.user;
+    const user = await this.userRepository.findOne({ where: { id: userPayload.userId } });
+    if (!user) {
+      throw SystemException.dataNotFound('用户不存在');
+    }
     const connected = await this.aiService.testConnection(user, dto.provider);
 
-    return { success: true, data: { provider: dto.provider, connected } };
+    return { provider: dto.provider, connected };
   }
 
   /**
    * 获取可用平台列表
    */
   @Get('providers')
+  @Public()
   @ApiOperation({
     summary: '获取可用平台列表',
     description: '获取系统支持的所有 AI 平台列表',
@@ -270,12 +281,8 @@ export class AiController {
       },
     },
   })
-  getProviders(): {
-    success: boolean;
-    data: Array<{ type: string; name: string }>;
-  } {
-    const providers = this.aiService.getAvailableProviders();
-    return { success: true, data: providers };
+  getProviders(): Array<{ type: string; name: string }> {
+    return this.aiService.getAvailableProviders();
   }
 
   /**
@@ -322,19 +329,17 @@ export class AiController {
     @Query('page') page = '1',
     @Query('limit') limit = '20',
     @Req() request: FastifyRequest,
-  ): Promise<{
-    success: boolean;
-    data: { items: any[]; total: number; page: number; limit: number };
-  }> {
-    const { user } = request;
+  ): Promise<{ items: any[]; total: number; page: number; limit: number }> {
+    const userPayload = request.user;
+    const user = await this.userRepository.findOne({ where: { id: userPayload.userId } });
+    if (!user) {
+      throw SystemException.dataNotFound('用户不存在');
+    }
     const pageNum = parseInt(page, 10) || 1;
     const limitNum = parseInt(limit, 10) || 20;
 
     const { data, total } = await this.aiService.getRequestHistory(user, pageNum, limitNum);
 
-    return {
-      success: true,
-      data: { items: data, total, page: pageNum, limit: limitNum },
-    };
+    return { items: data, total, page: pageNum, limit: limitNum };
   }
 }

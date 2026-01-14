@@ -1,19 +1,19 @@
+import { CacheService } from '@/modules/cache/cache.service';
+import { User } from '@/modules/user/entities/user.entity';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Observable } from 'rxjs';
 import { Repository } from 'typeorm';
-import { CacheService } from '@/modules/cache/cache.service';
-import { User } from '@/modules/user/entities/user.entity';
+import { AiRequestEntity } from './entities/ai-request.entity';
 import { AiException } from './exceptions/ai.exception';
 import {
-  AiProviderType,
   AiMessage,
+  AiProviderType,
   AiRequestOptions,
   AiResponse,
 } from './interfaces/ai-provider.interface';
 import { PROVIDER_FACTORY } from './providers/provider.factory';
-import { AiRequestEntity } from './entities/ai-request.entity';
 
 @Injectable()
 export class AiService {

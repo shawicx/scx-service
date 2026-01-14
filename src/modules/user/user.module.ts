@@ -9,15 +9,12 @@ import { User } from './entities/user.entity';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 
+const typeOrmFeature = TypeOrmModule.forFeature([User, Role, UserRole]);
+
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([User, Role, UserRole]),
-    CacheConfigModule,
-    MailModule,
-    AuthModule,
-  ],
+  imports: [typeOrmFeature, CacheConfigModule, MailModule, AuthModule],
   controllers: [UserController],
   providers: [UserService],
-  exports: [UserService],
+  exports: [UserService, typeOrmFeature],
 })
 export class UserModule {}

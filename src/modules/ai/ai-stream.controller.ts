@@ -9,16 +9,24 @@ import {
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { FastifyRequest } from 'fastify';
+import { InjectRepository } from '@nestjs/typeorm';
 import { Observable, map } from 'rxjs';
+import { Repository } from 'typeorm';
 import { AiService } from './ai.service';
 import { CompletionRequestDto } from './dto/ai-request.dto';
 import { AiResponse } from './interfaces/ai-provider.interface';
+import { User } from '../user/entities/user.entity';
+import { SystemException } from '@/common/exceptions';
 
 @ApiTags('AI 服务(流式)')
 @Controller('ai')
 @ApiBearerAuth()
 export class AiStreamController {
-  constructor(private readonly aiService: AiService) {}
+  constructor(
+    private readonly aiService: AiService,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+  ) {}
 
   /**
    * 流式生成 AI 回复(SSE)
@@ -50,11 +58,15 @@ export class AiStreamController {
   })
   @ApiBadRequestResponse({ description: '请求参数错误' })
   @ApiUnauthorizedResponse({ description: '未授权或 API 密钥无效' })
-  generateCompletionStream(
+  async generateCompletionStream(
     @Body() dto: CompletionRequestDto,
     @Req() request: FastifyRequest,
-  ): Observable<{ data: AiResponse }> {
-    const { user } = request;
+  ): Promise<Observable<{ data: AiResponse }>> {
+    const userPayload = request.user;
+    const user = await this.userRepository.findOne({ where: { id: userPayload.userId } });
+    if (!user) {
+      throw SystemException.dataNotFound('用户不存在');
+    }
 
     return this.aiService
       .generateCompletionStream(user, dto.messages, dto.options || {}, dto.provider)
