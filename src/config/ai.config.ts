@@ -20,7 +20,7 @@ export const aiConfig = registerAs('ai', () => ({
     },
     glm: {
       baseUrl: process.env.GLM_BASE_URL || 'https://open.bigmodel.cn/api/paas/v4',
-      model: process.env.GLM_MODEL || 'glm-4',
+      model: process.env.GLM_MODEL || 'glm-4.7',
     },
     qwen: {
       baseUrl: process.env.QWEN_BASE_URL || 'https://dashscope.aliyuncs.com/api/v1',

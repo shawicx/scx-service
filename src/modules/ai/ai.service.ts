@@ -1,5 +1,6 @@
 import { CacheService } from '@/modules/cache/cache.service';
 import { User } from '@/modules/user/entities/user.entity';
+import { UserService } from '@/modules/user/user.service';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -27,6 +28,7 @@ export class AiService {
     private readonly providerFactory: Map<AiProviderType, any>,
     private readonly configService: ConfigService,
     private readonly cacheService: CacheService,
+    private readonly userService: UserService,
     @InjectRepository(AiRequestEntity)
     private readonly aiRequestRepository: Repository<AiRequestEntity>,
   ) {
@@ -158,6 +160,67 @@ export class AiService {
     return { data, total };
   }
 
+  /**
+   * 更新用户 AI 配置
+   * @param user 用户
+   * @param config 配置数据
+   */
+  async updateUserConfig(
+    user: User,
+    config: {
+      defaultProvider?: 'copilot' | 'glm' | 'qwen';
+      providers?: {
+        copilot?: { apiKey?: string; enabled?: boolean; baseUrl?: string };
+        glm?: { apiKey?: string; enabled?: boolean; baseUrl?: string };
+        qwen?: { apiKey?: string; enabled?: boolean; baseUrl?: string };
+      };
+    },
+  ): Promise<void> {
+    const currentAiConfig = user.preferences?.ai || {};
+
+    const newAiConfig: any = { ...currentAiConfig };
+
+    if (config.defaultProvider) {
+      newAiConfig.defaultProvider = config.defaultProvider;
+    }
+
+    if (config.providers) {
+      if (!newAiConfig.providers) {
+        newAiConfig.providers = {};
+      }
+
+      if (config.providers.copilot) {
+        newAiConfig.providers.copilot = {
+          ...(newAiConfig.providers.copilot || {}),
+          apiKey: config.providers.copilot.apiKey ?? newAiConfig.providers.copilot?.apiKey,
+          enabled:
+            config.providers.copilot.enabled ?? newAiConfig.providers.copilot?.enabled ?? true,
+          baseUrl: config.providers.copilot.baseUrl ?? newAiConfig.providers.copilot?.baseUrl,
+        };
+      }
+
+      if (config.providers.glm) {
+        newAiConfig.providers.glm = {
+          ...(newAiConfig.providers.glm || {}),
+          apiKey: config.providers.glm.apiKey ?? newAiConfig.providers.glm?.apiKey,
+          enabled: config.providers.glm.enabled ?? newAiConfig.providers.glm?.enabled ?? true,
+          baseUrl: config.providers.glm.baseUrl ?? newAiConfig.providers.glm?.baseUrl,
+        };
+      }
+
+      if (config.providers.qwen) {
+        newAiConfig.providers.qwen = {
+          ...(newAiConfig.providers.qwen || {}),
+          apiKey: config.providers.qwen.apiKey ?? newAiConfig.providers.qwen?.apiKey,
+          enabled: config.providers.qwen.enabled ?? newAiConfig.providers.qwen?.enabled ?? true,
+          baseUrl: config.providers.qwen.baseUrl ?? newAiConfig.providers.qwen?.baseUrl,
+        };
+      }
+    }
+
+    await this.userService.updatePreferences(user.id, { ai: newAiConfig });
+  }
+
   // ==================== 私有方法 ====================
 
   /**
@@ -284,6 +347,7 @@ export class AiService {
         case 401:
           throw AiException.authenticationFailed(provider);
         case 429:
+          this.logger.warn(`频率限制: ${provider}, 请降低请求频率`);
           throw AiException.rateLimitExceeded(provider);
         case 402:
           throw AiException.insufficientQuota(provider);

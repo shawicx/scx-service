@@ -1,5 +1,6 @@
 import { CacheService } from '@/modules/cache/cache.service';
 import { User } from '@/modules/user/entities/user.entity';
+import { UserService } from '@/modules/user/user.service';
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -119,6 +120,12 @@ describe('AiService', () => {
             get: jest.fn(),
             set: jest.fn(),
             del: jest.fn(),
+          },
+        },
+        {
+          provide: UserService,
+          useValue: {
+            updatePreferences: jest.fn(),
           },
         },
         {

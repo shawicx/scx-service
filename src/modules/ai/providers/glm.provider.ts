@@ -1,13 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Observable } from 'rxjs';
 import axios, { AxiosInstance } from 'axios';
+import { Observable } from 'rxjs';
 import {
-  IAiProvider,
-  AiProviderType,
   AiMessage,
+  AiProviderType,
   AiRequestOptions,
   AiResponse,
+  IAiProvider,
 } from '../interfaces/ai-provider.interface';
 
 @Injectable()

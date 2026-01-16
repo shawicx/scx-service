@@ -9,7 +9,6 @@ const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('CopilotProvider', () => {
   let provider: CopilotProvider;
-  // let configService: ConfigService;
 
   const mockConfig = {
     'ai.providers.copilot.baseUrl': 'https://api.githubcopilot.com',
@@ -43,7 +42,6 @@ describe('CopilotProvider', () => {
     }).compile();
 
     provider = module.get<CopilotProvider>(CopilotProvider);
-    configService = module.get<ConfigService>(ConfigService);
   });
 
   beforeEach(() => {

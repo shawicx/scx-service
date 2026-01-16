@@ -139,6 +139,7 @@ export class AiController {
     description: '更新用户的默认平台和 API 密钥配置',
   })
   @ApiBody({
+    type: Object,
     schema: {
       type: 'object',
       properties: {
@@ -191,11 +192,17 @@ export class AiController {
     },
   })
   @ApiBadRequestResponse({ description: '请求参数错误' })
-  async updateConfig() // @Body() configDto: any,
-  // @Req() request: FastifyRequest,
-  : Promise<{ message: string }> {
-    // const user = request['user'];
-    // TODO: 实现配置更新逻辑(需要 UserService 支持)
+  async updateConfig(
+    @Body() configDto: any,
+    @Req() request: FastifyRequest,
+  ): Promise<{ message: string }> {
+    const userPayload = request.user;
+    const user = await this.userRepository.findOne({ where: { id: userPayload.userId } });
+    if (!user) {
+      throw SystemException.dataNotFound('用户不存在');
+    }
+
+    await this.aiService.updateUserConfig(user, configDto);
     return { message: 'AI 配置更新成功' };
   }
 
