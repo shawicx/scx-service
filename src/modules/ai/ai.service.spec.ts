@@ -23,6 +23,7 @@ describe('AiService', () => {
     name: 'testuser',
     password: 'hashedpassword',
     email: 'test@example.com',
+    deletedAt: null,
     preferences: {
       theme: 'light',
       language: 'zh-CN',

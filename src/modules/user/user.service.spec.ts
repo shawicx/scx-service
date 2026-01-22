@@ -322,7 +322,7 @@ describe('UserService', () => {
     it('should throw NotFoundException if user not found', async () => {
       const userId = '999';
       const roleId = 'role1';
-      const assignRoleDto = { roleId };
+      const assignRoleDto = { userId, roleId };
 
       mockUserRepository.findOne.mockResolvedValue(null);
 
@@ -335,7 +335,7 @@ describe('UserService', () => {
     it('should throw NotFoundException if role not found', async () => {
       const userId = '1';
       const roleId = '999';
-      const assignRoleDto = { roleId };
+      const assignRoleDto = { userId, roleId };
 
       const mockUser = {
         id: userId,

@@ -253,6 +253,7 @@ describe('RoleService', () => {
     it('should update role successfully', async () => {
       const roleId = '1';
       const updateRoleDto: UpdateRoleDto = {
+        id: roleId,
         name: 'Updated Admin',
         description: 'Updated administrator role',
       };
@@ -286,6 +287,7 @@ describe('RoleService', () => {
     it('should throw NotFoundException if role not found for update', async () => {
       const roleId = '999';
       const updateRoleDto: UpdateRoleDto = {
+        id: roleId,
         name: 'Updated Admin',
       };
 
@@ -300,6 +302,7 @@ describe('RoleService', () => {
     it('should throw BadRequestException if trying to update system role', async () => {
       const roleId = '1';
       const updateRoleDto: UpdateRoleDto = {
+        id: roleId,
         name: 'Updated Admin',
       };
 
@@ -324,6 +327,7 @@ describe('RoleService', () => {
     it('should throw ConflictException if updated role name already exists', async () => {
       const roleId = '1';
       const updateRoleDto: UpdateRoleDto = {
+        id: roleId,
         name: 'User',
       };
 
@@ -426,6 +430,7 @@ describe('RoleService', () => {
     it('should assign permissions to role successfully', async () => {
       const roleId = '1';
       const assignPermissionsDto: AssignPermissionsDto = {
+        id: roleId,
         permissionIds: ['perm1', 'perm2'],
       };
 
@@ -480,6 +485,7 @@ describe('RoleService', () => {
     it('should throw NotFoundException if role not found for permission assignment', async () => {
       const roleId = '999';
       const assignPermissionsDto: AssignPermissionsDto = {
+        id: roleId,
         permissionIds: ['perm1'],
       };
 
@@ -496,6 +502,7 @@ describe('RoleService', () => {
     it('should throw NotFoundException if some permissions not found', async () => {
       const roleId = '1';
       const assignPermissionsDto: AssignPermissionsDto = {
+        id: roleId,
         permissionIds: ['perm1', 'perm2', 'perm3'],
       };
 

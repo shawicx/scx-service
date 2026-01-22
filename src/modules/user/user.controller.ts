@@ -1,3 +1,4 @@
+import { AdminGuard } from '@/common/guards/admin.guard';
 import { Public } from '@/common/decorators/public.decorator';
 import {
   Body,
@@ -5,9 +6,11 @@ import {
   Controller,
   Delete,
   Get,
+  Patch,
   Post,
   Query,
   Req,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import {
@@ -23,8 +26,13 @@ import { FastifyRequest } from 'fastify';
 import { Role } from '../role/entities/role.entity';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { LoginUserDto, LoginWithPasswordDto } from './dto/login-user.dto';
+import { QueryUsersDto } from './dto/query-users.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { UserResponseDto } from './dto/user-response.dto';
+import { UserListResponseDto } from './dto/user-list-response.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { DeleteUsersDto } from './dto/delete-users.dto';
+import { ToggleUserStatusDto } from './dto/toggle-user-status.dto';
 import { AssignRoleDto, AssignRolesDto, UserRoleResponseDto } from './dto/user-role.dto';
 import { UserService } from './user.service';
 
@@ -492,6 +500,171 @@ export class UserController {
   ): Promise<{ hasPermission: boolean }> {
     const hasPermission = await this.userService.hasPermission(userId, action, resource);
     return { hasPermission };
+  }
+
+  @Get()
+  @UseGuards(AdminGuard)
+  @ApiOperation({
+    summary: '查询用户列表',
+    description: '支持分页、搜索和筛选用户列表',
+  })
+  @ApiQuery({
+    name: 'page',
+    description: '页码',
+    example: 1,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'limit',
+    description: '每页数量',
+    example: 10,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'search',
+    description: '搜索关键词（邮箱或姓名）',
+    example: 'john@example.com',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'isActive',
+    description: '启用状态筛选',
+    example: true,
+    required: false,
+  })
+  @ApiQuery({
+    name: 'sortBy',
+    description: '排序字段',
+    example: 'createdAt',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'sortOrder',
+    description: '排序方向',
+    example: 'DESC',
+    required: false,
+  })
+  @ApiResponse({
+    status: 200,
+    description: '用户列表',
+    type: UserListResponseDto,
+  })
+  async queryUsers(@Query() queryUsersDto: QueryUsersDto): Promise<UserListResponseDto> {
+    return this.userService.queryUsers(queryUsersDto);
+  }
+
+  @Post('create')
+  @UseGuards(AdminGuard)
+  @ApiOperation({
+    summary: '管理员创建用户',
+    description: '允许管理员直接创建用户，无需邮箱验证码验证',
+  })
+  @ApiBody({ type: CreateUserDto })
+  @ApiResponse({
+    status: 201,
+    description: '用户创建成功',
+    type: UserResponseDto,
+  })
+  @ApiResponse({
+    status: 400,
+    description: '请求参数错误',
+  })
+  @ApiResponse({
+    status: 409,
+    description: '邮箱已被注册',
+  })
+  @ApiResponse({
+    status: 403,
+    description: '无权限',
+  })
+  async createUser(@Body() createUserDto: CreateUserDto): Promise<UserResponseDto> {
+    return this.userService.createUser(createUserDto);
+  }
+
+  @Delete()
+  @UseGuards(AdminGuard)
+  @ApiOperation({
+    summary: '删除用户（支持批量）',
+    description: '删除指定的用户账户，支持批量删除',
+  })
+  @ApiBody({ type: DeleteUsersDto })
+  @ApiResponse({
+    status: 200,
+    description: '删除成功',
+    schema: {
+      type: 'object',
+      properties: {
+        count: { type: 'number', description: '删除的用户数量' },
+        message: { type: 'string', example: '删除成功' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: '用户不存在',
+  })
+  @ApiResponse({
+    status: 400,
+    description: '不能删除自己或其他错误',
+  })
+  @ApiResponse({
+    status: 403,
+    description: '无权限删除管理员',
+  })
+  async deleteUsers(
+    @Body() deleteUsersDto: DeleteUsersDto,
+    @Req() request: FastifyRequest,
+  ): Promise<{ count: number; message: string }> {
+    const currentUserId = request.user?.userId;
+    if (!currentUserId) {
+      throw new Error('未找到用户信息');
+    }
+
+    const count = await this.userService.deleteUsers(currentUserId, deleteUsersDto);
+    return { count, message: '删除成功' };
+  }
+
+  @Patch('toggle-status')
+  @UseGuards(AdminGuard)
+  @ApiOperation({
+    summary: '切换用户状态（支持批量）',
+    description: '启用或禁用指定的用户账户，支持批量操作',
+  })
+  @ApiBody({ type: ToggleUserStatusDto })
+  @ApiResponse({
+    status: 200,
+    description: '状态更新成功',
+    schema: {
+      type: 'object',
+      properties: {
+        count: { type: 'number', description: '更新的用户数量' },
+        message: { type: 'string', example: '状态更新成功' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: '用户不存在',
+  })
+  @ApiResponse({
+    status: 400,
+    description: '不能禁用自己或其他错误',
+  })
+  @ApiResponse({
+    status: 403,
+    description: '无权限',
+  })
+  async toggleUserStatus(
+    @Body() toggleUserStatusDto: ToggleUserStatusDto,
+    @Req() request: FastifyRequest,
+  ): Promise<{ count: number; message: string }> {
+    const currentUserId = request.user?.userId;
+    if (!currentUserId) {
+      throw new Error('未找到用户信息');
+    }
+
+    const count = await this.userService.toggleUserStatus(currentUserId, toggleUserStatusDto);
+    return { count, message: '状态更新成功' };
   }
 
   /**

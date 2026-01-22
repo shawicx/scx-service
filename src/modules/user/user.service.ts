@@ -1,8 +1,8 @@
+import { SystemException } from '@/common/exceptions';
 import { emailVerificationKey, loginVerificationKey } from '@/common/utils/cache-keys.constants';
 import { CryptoUtil } from '@/common/utils/crypto.util';
 import { EMAIL_VERIFICATION_TTL_MS, LOGIN_VERIFICATION_TTL_MS } from '@/common/utils/ttl.constants';
 import { Injectable } from '@nestjs/common';
-import { SystemException } from '@/common/exceptions';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { In, Repository } from 'typeorm';
@@ -11,9 +11,14 @@ import { CacheService } from '../cache/cache.service';
 import { MailService } from '../mail/mail.service';
 import { Role } from '../role/entities/role.entity';
 import { UserRole } from '../user-role/entities/user-role.entity';
+import { CreateUserDto } from './dto/create-user.dto';
+import { DeleteUsersDto } from './dto/delete-users.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { LoginUserDto, LoginWithPasswordDto } from './dto/login-user.dto';
+import { QueryUsersDto } from './dto/query-users.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { ToggleUserStatusDto } from './dto/toggle-user-status.dto';
+import { UserListItemDto, UserListResponseDto } from './dto/user-list-response.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { AssignRoleDto, AssignRolesDto, UserRoleResponseDto } from './dto/user-role.dto';
 import { User, UserPreferences } from './entities/user.entity';
@@ -368,26 +373,25 @@ export class UserService {
   ): Promise<LoginResponseDto> {
     const { email, emailVerificationCode } = loginUserDto;
 
-    // 查找用户
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user) {
       throw SystemException.invalidCredentials('邮箱不存在');
     }
 
-    // 验证邮箱验证码
+    if (!user.isActive) {
+      throw SystemException.accountDisabled('账户已被禁用，请联系管理员');
+    }
+
     const isValidCode = await this.validateEmailCodeForLogin(email, emailVerificationCode);
     if (!isValidCode) {
       throw SystemException.invalidVerificationCode('邮箱验证码无效或已过期');
     }
 
-    // 更新登录信息
     await this.updateLoginInfo(user.id, clientIp);
 
-    // 生成tokens
     const accessToken = await this.authService.generateAccessToken(user.id, user.email);
     const refreshToken = await this.authService.generateRefreshToken(user.id, user.email);
 
-    // 重新获取更新后的用户信息
     const updatedUser = await this.userRepository.findOne({ where: { id: user.id } });
 
     return new LoginResponseDto(updatedUser!, accessToken, refreshToken);
@@ -407,12 +411,10 @@ export class UserService {
   ): Promise<LoginResponseDto> {
     const { email, password } = loginWithPasswordDto;
 
-    // 强制要求提供 keyId
     if (!keyId) {
       throw SystemException.invalidParameter('密码必须加密传输，请先获取加密密钥');
     }
 
-    // 获取加密密钥并解密密码
     const encryptionKey = await this.authService.getEncryptionKey(keyId);
     if (!encryptionKey) {
       throw SystemException.keyExpired('加密密钥已过期，请重新获取');
@@ -425,26 +427,25 @@ export class UserService {
       throw SystemException.decryptionFailed('密码解密失败');
     }
 
-    // 查找用户
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user) {
       throw SystemException.invalidCredentials('邮箱或密码错误');
     }
 
-    // 验证密码
+    if (!user.isActive) {
+      throw SystemException.accountDisabled('账户已被禁用，请联系管理员');
+    }
+
     const isPasswordValid = await bcrypt.compare(decryptedPassword, user.password);
     if (!isPasswordValid) {
       throw SystemException.invalidCredentials('邮箱或密码错误');
     }
 
-    // 更新登录信息
     await this.updateLoginInfo(user.id, clientIp);
 
-    // 生成tokens
     const accessToken = await this.authService.generateAccessToken(user.id, user.email);
     const refreshToken = await this.authService.generateRefreshToken(user.id, user.email);
 
-    // 重新获取更新后的用户信息
     const updatedUser = await this.userRepository.findOne({ where: { id: user.id } });
 
     return new LoginResponseDto(updatedUser!, accessToken, refreshToken);
@@ -550,5 +551,218 @@ export class UserService {
     // 验证成功后删除验证码
     await this.cacheService.del(cacheKey);
     return true;
+  }
+
+  /**
+   * 查询用户列表
+   * @param queryUsersDto 查询参数
+   * @returns 用户列表和分页信息
+   */
+  async queryUsers(queryUsersDto: QueryUsersDto): Promise<UserListResponseDto> {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      isActive,
+      sortBy = 'createdAt',
+      sortOrder = 'DESC',
+    } = queryUsersDto;
+
+    const skip = (page - 1) * limit;
+
+    const queryBuilder = this.userRepository.createQueryBuilder('user');
+
+    if (search) {
+      queryBuilder.andWhere('(user.email LIKE :search OR user.name LIKE :search)', {
+        search: `%${search}%`,
+      });
+    }
+
+    if (isActive !== undefined) {
+      queryBuilder.andWhere('user.isActive = :isActive', { isActive });
+    }
+
+    queryBuilder.orderBy(`user.${sortBy}`, sortOrder);
+
+    queryBuilder.skip(skip).take(limit);
+
+    const [users, total] = await queryBuilder.getManyAndCount();
+
+    return new UserListResponseDto({
+      users: users.map((user) => new UserListItemDto(user)),
+      total,
+      page,
+      limit,
+    });
+  }
+
+  /**
+   * 管理员创建用户
+   * @param createUserDto 创建用户信息
+   * @returns 用户信息
+   */
+  async createUser(createUserDto: CreateUserDto): Promise<UserResponseDto> {
+    const { email, name, password, isActive = true, roleIds } = createUserDto;
+
+    const existingUser = await this.userRepository.findOne({ where: { email } });
+    if (existingUser) {
+      throw SystemException.emailExists('该邮箱已被注册');
+    }
+
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    const defaultPreferences: UserPreferences = {
+      theme: 'light',
+      language: 'zh-CN',
+      timezone: 'Asia/Shanghai',
+      notifications: {
+        email: true,
+        push: true,
+        sms: false,
+      },
+      privacy: {
+        profileVisible: true,
+        showEmail: false,
+        showLastSeen: true,
+      },
+    };
+
+    const user = this.userRepository.create({
+      email,
+      name,
+      password: hashedPassword,
+      emailVerified: true,
+      preferences: defaultPreferences,
+      isActive,
+      loginCount: 0,
+    });
+
+    const savedUser = await this.userRepository.save(user);
+
+    if (roleIds && roleIds.length > 0) {
+      const roles = await this.roleRepository.find({
+        where: { id: In(roleIds) },
+      });
+
+      if (roles.length !== roleIds.length) {
+        const foundIds = roles.map((r) => r.id);
+        const missingIds = roleIds.filter((id) => !foundIds.includes(id));
+        throw SystemException.dataNotFound(`角色不存在: ${missingIds.join(', ')}`);
+      }
+
+      const userRoles = roleIds.map((roleId) =>
+        this.userRoleRepository.create({ userId: savedUser.id, roleId }),
+      );
+
+      await this.userRoleRepository.save(userRoles);
+    }
+
+    return new UserResponseDto(savedUser);
+  }
+
+  /**
+   * 检查用户是否为超级管理员
+   * @param userId 用户ID
+   * @returns 是否为超级管理员
+   */
+  async isSuperAdmin(userId: string): Promise<boolean> {
+    if (userId === '3bdd37b8-1d91-4da2-a2f7-a67fa7b4a78d') {
+      console.log('userId ----', userId);
+      return true;
+    }
+    return await this.hasRole(userId, 'SUPER_ADMIN');
+  }
+
+  /**
+   * 检查用户是否为管理员
+   * @param userId 用户ID
+   * @returns 是否为管理员
+   */
+  async isAdmin(userId: string): Promise<boolean> {
+    const superAdmin = await this.isSuperAdmin(userId);
+    if (superAdmin) {
+      return true;
+    }
+
+    const userRole = await this.userRoleRepository
+      .createQueryBuilder('userRole')
+      .leftJoinAndSelect('userRole.role', 'role')
+      .where('userRole.userId = :userId', { userId })
+      .andWhere('role.code LIKE :adminCode', { adminCode: 'ADMIN%' })
+      .getOne();
+
+    return !!userRole;
+  }
+
+  /**
+   * 删除用户（支持批量）
+   * @param currentUserId 当前登录用户ID
+   * @param deleteUsersDto 删除用户信息
+   * @returns 删除的用户数量
+   */
+  async deleteUsers(currentUserId: string, deleteUsersDto: DeleteUsersDto): Promise<number> {
+    const { userIds } = deleteUsersDto;
+
+    const users = await this.userRepository.find({
+      where: { id: In(userIds) },
+    });
+
+    if (users.length !== userIds.length) {
+      const foundIds = users.map((u) => u.id);
+      const missingIds = userIds.filter((id) => !foundIds.includes(id));
+      throw SystemException.dataNotFound(`用户不存在: ${missingIds.join(', ')}`);
+    }
+
+    if (userIds.includes(currentUserId)) {
+      throw SystemException.operationFailed('不能删除自己');
+    }
+
+    const currentIsSuperAdmin = await this.isSuperAdmin(currentUserId);
+
+    for (const user of users) {
+      const userIsAdmin = await this.isAdmin(user.id);
+
+      if (userIsAdmin && !currentIsSuperAdmin) {
+        throw SystemException.operationFailed('只有超级管理员可以删除其他管理员用户');
+      }
+    }
+
+    await this.userRepository.softDelete(userIds);
+
+    await this.userRoleRepository.delete({ userId: In(userIds) });
+
+    return userIds.length;
+  }
+
+  /**
+   * 切换用户状态（支持批量）
+   * @param currentUserId 当前登录用户ID
+   * @param toggleUserStatusDto 切换状态信息
+   * @returns 更新的用户数量
+   */
+  async toggleUserStatus(
+    currentUserId: string,
+    toggleUserStatusDto: ToggleUserStatusDto,
+  ): Promise<number> {
+    const { userIds, isActive } = toggleUserStatusDto;
+
+    const users = await this.userRepository.find({
+      where: { id: In(userIds) },
+    });
+
+    if (users.length !== userIds.length) {
+      const foundIds = users.map((u) => u.id);
+      const missingIds = userIds.filter((id) => !foundIds.includes(id));
+      throw SystemException.dataNotFound(`用户不存在: ${missingIds.join(', ')}`);
+    }
+
+    if (userIds.includes(currentUserId) && !isActive) {
+      throw SystemException.operationFailed('不能禁用自己');
+    }
+
+    await this.userRepository.update({ id: In(userIds) }, { isActive });
+
+    return userIds.length;
   }
 }

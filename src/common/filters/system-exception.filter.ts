@@ -108,6 +108,7 @@ export class SystemExceptionFilter implements ExceptionFilter {
 
       case SystemErrorCode.INVALID_CREDENTIALS:
       case SystemErrorCode.KEY_EXPIRED:
+      case SystemErrorCode.ACCOUNT_DISABLED:
         return HttpStatus.UNAUTHORIZED; // 401
 
       case SystemErrorCode.SERVICE_UNAVAILABLE:

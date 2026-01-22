@@ -137,6 +137,7 @@ describe('UserController', () => {
       const loginWithPasswordDto: LoginWithPasswordDto = {
         email: 'serve.suitor386@passinbox.com',
         password: 'encryptedPassword',
+        keyId: 'key123',
       };
 
       const keyId = 'key123';
@@ -167,7 +168,6 @@ describe('UserController', () => {
 
       const result = await userController.loginWithPassword(
         loginWithPasswordDto,
-        keyId,
         mockRequest as any,
       );
 
@@ -260,8 +260,10 @@ describe('UserController', () => {
 
   describe('assignRole', () => {
     it('should assign role to user successfully', async () => {
-      const userId = '1';
-      const assignRoleDto: AssignRoleDto = { roleId: 'role1' };
+      const assignRoleDto: AssignRoleDto = {
+        userId: '1',
+        roleId: 'role1',
+      };
 
       const expectedResult: any = {
         userId: '1',
@@ -272,17 +274,19 @@ describe('UserController', () => {
 
       mockUserService.assignRole.mockResolvedValue(expectedResult);
 
-      const result = await userController.assignRole(userId, assignRoleDto);
+      const result = await userController.assignRole(assignRoleDto);
 
       expect(result).toEqual(expectedResult);
-      expect(mockUserService.assignRole).toHaveBeenCalledWith(userId, assignRoleDto);
+      expect(mockUserService.assignRole).toHaveBeenCalledWith(assignRoleDto.userId, assignRoleDto);
     });
   });
 
   describe('assignRoles', () => {
     it('should assign multiple roles to user successfully', async () => {
-      const userId = '1';
-      const assignRolesDto: AssignRolesDto = { roleIds: ['role1', 'role2'] };
+      const assignRolesDto: AssignRolesDto = {
+        userId: '1',
+        roleIds: ['role1', 'role2'],
+      };
 
       const expectedResult: any[] = [
         { userId: '1', roleId: 'role1', id: 'user-role-1', createdAt: new Date() },
@@ -291,10 +295,13 @@ describe('UserController', () => {
 
       mockUserService.assignRoles.mockResolvedValue(expectedResult);
 
-      const result = await userController.assignRoles(userId, assignRolesDto);
+      const result = await userController.assignRoles(assignRolesDto);
 
       expect(result).toEqual(expectedResult);
-      expect(mockUserService.assignRoles).toHaveBeenCalledWith(userId, assignRolesDto);
+      expect(mockUserService.assignRoles).toHaveBeenCalledWith(
+        assignRolesDto.userId,
+        assignRolesDto,
+      );
     });
   });
 

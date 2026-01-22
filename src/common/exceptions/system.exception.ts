@@ -28,6 +28,8 @@ export enum SystemErrorCode {
   DECRYPTION_FAILED = 9011,
   /** 业务规则限制 */
   BUSINESS_RULE_VIOLATION = 9012,
+  /** 账户已禁用 */
+  ACCOUNT_DISABLED = 9013,
 }
 
 /**
@@ -123,6 +125,13 @@ export class SystemException extends Error {
    */
   static businessRuleViolation(message = '业务规则限制'): SystemException {
     return new SystemException(SystemErrorCode.BUSINESS_RULE_VIOLATION, message);
+  }
+
+  /**
+   * 账户已禁用错误
+   */
+  static accountDisabled(message = '账户已被禁用'): SystemException {
+    return new SystemException(SystemErrorCode.ACCOUNT_DISABLED, message);
   }
 
   readonly code: SystemErrorCode;

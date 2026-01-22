@@ -1,6 +1,7 @@
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   Index,
   OneToMany,
@@ -46,13 +47,18 @@ export class User {
   loginCount: number;
 
   @Column({ type: 'boolean', default: true })
+  @Index()
   isActive: boolean;
 
   @CreateDateColumn()
+  @Index()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  deletedAt: Date;
 
   // 关系定义
   @OneToMany('UserRole', 'user')
