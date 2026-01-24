@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString, Length, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreatePermissionDto {
   @ApiProperty({
@@ -154,6 +155,30 @@ export class PermissionResponseDto {
 }
 
 export class PermissionQueryDto {
+  @ApiProperty({
+    description: '页码',
+    example: 1,
+    required: false,
+    default: 1,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt({ message: '页码必须是整数' })
+  @Min(1, { message: '页码必须大于0' })
+  page?: number = 1;
+
+  @ApiProperty({
+    description: '每页数量',
+    example: 10,
+    required: false,
+    default: 10,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt({ message: '每页数量必须是整数' })
+  @Min(1, { message: '每页数量必须大于0' })
+  limit?: number = 10;
+
   @ApiProperty({
     description: '搜索关键词（权限名称、动作或资源）',
     example: 'user',

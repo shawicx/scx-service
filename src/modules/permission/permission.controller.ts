@@ -82,11 +82,10 @@ export class PermissionController {
     },
   })
   async findAll(
-    @Query('page') page = 1,
-    @Query('limit') limit = 10,
-    @Query() queryDto: PermissionQueryDto = {},
+    @Query() queryDto: PermissionQueryDto,
   ): Promise<{ permissions: PermissionResponseDto[]; total: number }> {
-    return await this.permissionService.findAll(queryDto, +page, +limit);
+    const { page = 1, limit = 10, ...filters } = queryDto;
+    return await this.permissionService.findAll(filters, page, limit);
   }
 
   @Get('search')
