@@ -18,9 +18,7 @@ WORKDIR /app
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/pnpm-lock.yaml ./
 
-RUN npm install -g pnpm && \
-    pnpm install --prod --frozen-lockfile && \
-    npm cache clean --force
+RUN pnpm install --prod --frozen-lockfile
 
 COPY --from=builder /app/dist ./dist
 
