@@ -5,7 +5,7 @@ WORKDIR /app
 RUN corepack enable
 
 # 可选：锁定 pnpm 版本，本机一致
-RUN corepack prepare pnpm@10.28.2 --activate
+RUN corepack use pnpm@latest
 
 COPY package.json pnpm-lock.yaml ./
 
