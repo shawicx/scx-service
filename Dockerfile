@@ -8,8 +8,7 @@ RUN corepack enable
 RUN corepack use pnpm@latest
 
 COPY package.json pnpm-lock.yaml ./
-
-RUN pnpm install --prod --frozen-lockfile --ignore-scripts
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 
@@ -27,10 +26,11 @@ WORKDIR /app
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/pnpm-lock.yaml ./
 
-RUN pnpm install --prod --frozen-lockfile
+RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 
 COPY --from=builder /app/dist ./dist
 
+ENV NODE_ENV=production
 EXPOSE 3000
 
 ENV NODE_ENV=production
