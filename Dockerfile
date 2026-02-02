@@ -2,6 +2,11 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+RUN corepack enable
+
+# 可选：锁定 pnpm 版本，本机一致
+RUN corepack prepare pnpm@10.28.2 --activate
+
 COPY package.json pnpm-lock.yaml ./
 
 RUN pnpm install --frozen-lockfile
