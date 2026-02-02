@@ -59,7 +59,7 @@ jobs:
             set -e
             cd /opt/scx-service
             docker load < scx-service-image.tar.gz
-            docker-compose -f docker-compose.prod.yml up -d
+            docker compose -f docker-compose.prod.yml up -d
             rm -f scx-service-image.tar.gz
             docker image prune -f
           ENDSSH
