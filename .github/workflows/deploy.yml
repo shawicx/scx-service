@@ -1,0 +1,80 @@
+name: Deploy to Aliyun ECS
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: scx-service
+  ECS_HOST: ${{ secrets.ECS_HOST }}
+  ECS_USER: ${{ secrets.ECS_USER }}
+  ECS_SSH_KEY: ${{ secrets.ECS_SSH_KEY }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ env.IMAGE_NAME }}:latest .
+
+      - name: Save Docker image
+        run: |
+          docker save ${{ env.IMAGE_NAME }}:latest | gzip > scx-service-image.tar.gz
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.ECS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ env.ECS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create project directory on ECS
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ env.ECS_USER }}@${{ env.ECS_HOST }} << 'ENDSSH'
+            mkdir -p /opt/scx-service
+          ENDSSH
+
+      - name: Copy Docker image to ECS
+        run: |
+          scp -i ~/.ssh/deploy_key scx-service-image.tar.gz ${{ env.ECS_USER }}@${{ env.ECS_HOST }}:/opt/scx-service/
+
+      - name: Copy docker-compose.prod.yml to ECS
+        run: |
+          scp -i ~/.ssh/deploy_key docker-compose.prod.yml ${{ env.ECS_USER }}@${{ env.ECS_HOST }}:/opt/scx-service/
+
+      - name: Deploy to ECS
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ env.ECS_USER }}@${{ env.ECS_HOST }} << 'ENDSSH'
+            set -e
+            cd /opt/scx-service
+            docker load < scx-service-image.tar.gz
+            docker-compose -f docker-compose.prod.yml up -d
+            rm -f scx-service-image.tar.gz
+            docker image prune -f
+          ENDSSH
+
+      - name: Health check
+        run: |
+          sleep 15
+          for i in {1..30}; do
+            if curl -f -s -o /dev/null http://${{ env.ECS_HOST }}:3000/health || \
+               curl -f -s -o /dev/null http://${{ env.ECS_HOST }}:3000/api/docs; then
+              echo "✓ Deployment successful!"
+              exit 0
+            fi
+            echo "Waiting for service to be ready... ($i/30)"
+            sleep 3
+          done
+          echo "✗ Health check failed"
+          exit 1

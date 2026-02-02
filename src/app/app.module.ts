@@ -21,6 +21,7 @@ import { RoleModule } from '@/modules/role/role.module';
 import { UserRoleModule } from '@/modules/user-role/user-role.module';
 import { UserModule } from '@/modules/user/user.module';
 import { AiModule } from '@/modules/ai/ai.module';
+import { HealthModule } from '@/modules/health/health.module';
 
 @Module({
   imports: [
@@ -56,6 +57,9 @@ import { AiModule } from '@/modules/ai/ai.module';
     PermissionModule,
     UserRoleModule,
     RolePermissionModule,
+
+    // 健康检查模块
+    HealthModule,
 
     // 日志模块
     WinstonModule.forRootAsync({
