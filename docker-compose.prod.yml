@@ -1,47 +1,21 @@
-version: '3.8'
-
+version: '3.7'
 services:
   web:
     image: myapp:latest
+    ports:
+      - '80:80'
     environment:
-      - DB_HOST=db
-      - DB_PORT=5432
-      - DB_USER=${DB_USER}        # Generated in CI/CD
-      - DB_PASSWORD=${DB_PASSWORD}  # Generated in CI/CD
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}  # Generated in CI/CD
-      - JWT_SECRET=${JWT_SECRET}  # Generated in CI/CD
-    depends_on:
-      db:
-        condition: service_healthy
-    healthcheck:
-      test: [ 'CMD', 'curl', '-f', 'http://localhost:8000' ]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 1m
-
+      - NODE_ENV=production
+    volumes:
+      - ./src:/app
+      - ./logs:/logs
   db:
     image: postgres:latest
     environment:
-      - POSTGRES_DB=${POSTGRES_DB}  # Generated in CI/CD
-      - POSTGRES_USER=${DB_USER}      # Generated in CI/CD
-      - POSTGRES_PASSWORD=${DB_PASSWORD}  # Generated in CI/CD
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER}']
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 1m
-
-  redis:
-    image: redis:latest
-    environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD}  # Generated in CI/CD
-    healthcheck:
-      test: [ 'CMD', 'redis-cli', 'ping' ]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-      start_period: 1m
+      POSTGRES_DB: mydb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - db_data:/var/lib/postgresql/data
+volumes:
+  db_data: {}
