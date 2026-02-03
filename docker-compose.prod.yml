@@ -58,11 +58,18 @@ services:
   redis:
     image: redis:7-alpine
     container_name: scx-service-redis
-    command: redis-server --requirepass ${REDIS_PASSWORD:-}
+    command: >
+      sh -c 'if [ -n "${REDIS_PASSWORD}" ]; then
+              exec redis-server --requirepass "${REDIS_PASSWORD}"
+            else
+              exec redis-server
+            fi'
     ports:
       - '6379:6379'
     volumes:
       - redis-data:/data
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-} # 可选，或在 .env 中设置
     healthcheck:
       test:
         [
