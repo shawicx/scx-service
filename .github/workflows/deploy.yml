@@ -58,10 +58,87 @@ jobs:
           ssh -i ~/.ssh/deploy_key ${{ env.ECS_USER }}@${{ env.ECS_HOST }} << 'ENDSSH'
             set -e
             cd /opt/scx-service
-            docker load < scx-service-image.tar.gz
-            docker compose -f docker-compose.prod.yml up -d
-            rm -f scx-service-image.tar.gz
-            docker image prune -f
+            # 生成 .env 文件（关键步骤，之前缺少）
+            cat > .env <<EOF
+          # 应用配置
+          NODE_ENV=production
+          PORT=${{ secrets.PORT || '3000' }}
+
+          # 数据库配置 (PostgreSQL)
+          DB_HOST=postgres
+          DB_PORT=5432
+          DB_USERNAME=${{ secrets.DB_USERNAME }}
+          DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+          DB_DATABASE=${{ secrets.DB_DATABASE || 'scx-service' }}
+
+          # Redis 配置
+          REDIS_HOST=redis
+          REDIS_PORT=6379
+          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+          REDIS_DB=0
+
+          # JWT 配置（可选）
+          JWT_SECRET=${{ secrets.JWT_SECRET || '' }}
+          JWT_EXPIRES_IN=7d
+
+          # Swagger 配置
+          SWAGGER_ENABLED=${{ secrets.SWAGGER_ENABLED || 'true' }}
+          SWAGGER_TITLE=${{ secrets.SWAGGER_TITLE || 'SCX Service API' }}
+          SWAGGER_DESCRIPTION=${{ secrets.SWAGGER_DESCRIPTION || 'SCX Service API Documentation' }}
+          SWAGGER_VERSION=${{ secrets.SWAGGER_VERSION || '1.0' }}
+          SWAGGER_PATH=${{ secrets.SWAGGER_PATH || 'api/docs' }}
+
+          # 邮件配置
+          MAIL_HOST=${{ secrets.MAIL_HOST }}
+          MAIL_PORT=${{ secrets.MAIL_PORT }}
+          MAIL_SECURE=${{ secrets.MAIL_SECURE }}
+          MAIL_USER=${{ secrets.MAIL_USER }}
+          MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+          MAIL_FROM=${{ secrets.MAIL_FROM }}
+
+          # AI 模块配置
+          AI_DEFAULT_PROVIDER=${{ secrets.AI_DEFAULT_PROVIDER || 'copilot' }}
+          AI_TIMEOUT=${{ secrets.AI_TIMEOUT || '30000' }}
+          AI_CACHE_TTL=${{ secrets.AI_CACHE_TTL || '3600' }}
+          AI_ENABLE_CACHE=${{ secrets.AI_ENABLE_CACHE || 'true' }}
+          AI_MAX_TOKENS_LIMIT=${{ secrets.AI_MAX_TOKENS_LIMIT || '4096' }}
+
+          # AI 监控配置
+          AI_LOG_REQUESTS=${{ secrets.AI_LOG_REQUESTS || 'true' }}
+          AI_LOG_RESPONSES=${{ secrets.AI_LOG_RESPONSES || 'false' }}
+          AI_LOG_TOKENS=${{ secrets.AI_LOG_TOKENS || 'true' }}
+
+          # GitHub Copilot 配置
+          COPILOT_BASE_URL=${{ secrets.COPILOT_BASE_URL }}
+          COPILOT_MODEL=${{ secrets.COPILOT_MODEL }}
+
+          # GLM (智谱AI) 配置
+          GLM_BASE_URL=${{ secrets.GLM_BASE_URL }}
+          GLM_MODEL=${{ secrets.GLM_MODEL }}
+
+          # Qwen (阿里通义千问) 配置
+          QWEN_BASE_URL=${{ secrets.QWEN_BASE_URL }}
+          QWEN_MODEL=${{ secrets.QWEN_MODEL }}
+          EOF
+
+          # 验证 .env 生成成功
+          echo "=== Checking .env file ==="
+          ls -la .env
+          cat .env | head -20
+
+          # 加载镜像并启动
+          docker load < scx-service-image.tar.gz
+          docker compose -f docker-compose.prod.yml up -d --force-recreate
+          rm -f scx-service-image.tar.gz
+          docker image prune -f
+
+          # 检查服务状态
+          sleep 10
+          echo "=== Service status ==="
+          docker ps -a | grep scx-service
+          docker logs scx-service-postgres --tail 30
+          docker logs scx-service-redis --tail 30
+          docker logs scx-service-app --tail 30
           ENDSSH
 
       - name: Health check
