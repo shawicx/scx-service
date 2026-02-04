@@ -29,7 +29,7 @@ COPY --from=builder /app/package.json ./
 COPY --from=builder /app/pnpm-lock.yaml ./
 
 # 只安装生产依赖
-RUN pnpm install --prod --frozen-lockfile
+RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 
 # 复制编译后的代码
 COPY --from=builder /app/dist ./dist
