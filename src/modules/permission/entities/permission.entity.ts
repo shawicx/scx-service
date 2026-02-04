@@ -3,7 +3,6 @@ import {
   CreateDateColumn,
   Entity,
   Index,
-  ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -37,7 +36,4 @@ export class Permission {
   // 关系定义
   @OneToMany('RolePermission', 'permission')
   rolePermissions: any[];
-
-  @ManyToMany('Role', 'permissions')
-  roles: any[];
 }

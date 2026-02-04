@@ -10,8 +10,6 @@ import {
   CreateDateColumn,
   Entity,
   Index,
-  JoinTable,
-  ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -48,12 +46,4 @@ export class Role {
 
   @OneToMany('RolePermission', 'role')
   rolePermissions: any[];
-
-  @ManyToMany('Permission', 'roles')
-  @JoinTable({
-    name: 'role_permissions',
-    joinColumn: { name: 'roleId', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'permissionId', referencedColumnName: 'id' },
-  })
-  permissions: any[];
 }
