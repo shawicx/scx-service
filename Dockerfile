@@ -3,36 +3,43 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 RUN corepack enable
-
-# 最新版本，与本机一致
 RUN corepack use pnpm@latest
 
 COPY package.json pnpm-lock.yaml ./
+
+# 安装所有依赖（包括 devDependencies，用于编译）
 RUN pnpm install --frozen-lockfile
 
 COPY . .
 
+# 编译 TypeScript → dist
 RUN pnpm run build
+
+# 验证编译结果
+RUN ls -la dist/ && test -f dist/main.js
 
 FROM node:20-alpine AS production
 
-RUN corepack enable
-
-# 最新版本，与本机一致
-RUN corepack use pnpm@latest
-
 WORKDIR /app
 
+RUN corepack enable
+RUN corepack use pnpm@latest
+
+# 复��� package.json 和 lock 文件
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/pnpm-lock.yaml ./
 
-RUN pnpm install --prod --frozen-lockfile --ignore-scripts
+# 只安装生产依赖
+RUN pnpm install --prod --frozen-lockfile
 
+# 复制编译后的代码
 COPY --from=builder /app/dist ./dist
 
 ENV NODE_ENV=production
 EXPOSE 3000
 
-ENV NODE_ENV=production
+# 健康检查（可选但推荐）
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
 
 CMD ["node", "dist/main"]
