@@ -16,8 +16,7 @@ COPY . .
 RUN pnpm run build
 
 # 验证编译结果
-RUN ls -la dist/ && test -f dist/main.js
-
+RUN ls -la dist/ && test -f dist/src/main.js
 FROM node:20-alpine AS production
 
 WORKDIR /app
@@ -42,4 +41,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
 
-CMD ["node", "dist/main"]
+CMD ["node", "dist/src/main"]
