@@ -4,6 +4,8 @@ services:
   app:
     image: scx-service:latest
     container_name: scx-service-app
+    env_file:
+      - .env
     ports:
       - '3000:3000'
     environment:
@@ -26,7 +28,13 @@ services:
     networks:
       - scx-network
     healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/health']
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "require('http').get('http://localhost:3000/api/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -8,9 +8,15 @@ importers:
 
   .:
     dependencies:
+      '@fastify/static':
+        specifier: ^8.2.0
+        version: 8.3.0
       '@nestjs-modules/mailer':
         specifier: ^2.0.2
         version: 2.0.2(@nestjs/common@11.1.13(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.13(@nestjs/common@11.1.13(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(reflect-metadata@0.2.2)(rxjs@7.8.2))(nodemailer@6.10.1)
+      '@nestjs/cli':
+        specifier: ^11.0.0
+        version: 11.0.16(@types/node@20.19.31)
       '@nestjs/common':
         specifier: ^11.1.6
         version: 11.1.13(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -23,9 +29,18 @@ importers:
       '@nestjs/platform-fastify':
         specifier: ^11.1.6
         version: 11.1.13(@fastify/static@8.3.0)(@nestjs/common@11.1.13(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.13(@nestjs/common@11.1.13(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(reflect-metadata@0.2.2)(rxjs@7.8.2))
+      '@nestjs/schematics':
+        specifier: ^11.0.0
+        version: 11.0.9(chokidar@4.0.3)(typescript@5.9.3)
+      '@nestjs/swagger':
+        specifier: ^11.2.0
+        version: 11.2.6(@fastify/static@8.3.0)(@nestjs/common@11.1.13(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.13(@nestjs/common@11.1.13(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(reflect-metadata@0.2.2)(rxjs@7.8.2))(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)
       '@nestjs/typeorm':
         specifier: ^11.0.0
         version: 11.0.0(@nestjs/common@11.1.13(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.13(@nestjs/common@11.1.13(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(reflect-metadata@0.2.2)(rxjs@7.8.2))(reflect-metadata@0.2.2)(rxjs@7.8.2)(typeorm@0.3.28(better-sqlite3@12.6.2)(pg@8.18.0)(redis@5.10.0)(ts-node@10.9.2(@types/node@20.19.31)(typescript@5.9.3)))
+      axios:
+        specifier: ^1.11.0
+        version: 1.13.4
       bcrypt:
         specifier: ^6.0.0
         version: 6.0.0
@@ -41,6 +56,9 @@ importers:
       dotenv:
         specifier: ^17.2.1
         version: 17.2.3
+      fastify:
+        specifier: ^5.5.0
+        version: 5.7.4
       handlebars:
         specifier: ^4.7.8
         version: 4.7.8
@@ -72,18 +90,6 @@ importers:
       '@commitlint/config-conventional':
         specifier: ^19.8.1
         version: 19.8.1
-      '@fastify/static':
-        specifier: ^8.2.0
-        version: 8.3.0
-      '@nestjs/cli':
-        specifier: ^11.0.0
-        version: 11.0.16(@types/node@20.19.31)
-      '@nestjs/schematics':
-        specifier: ^11.0.0
-        version: 11.0.9(chokidar@4.0.3)(typescript@5.9.3)
-      '@nestjs/swagger':
-        specifier: ^11.2.0
-        version: 11.2.6(@fastify/static@8.3.0)(@nestjs/common@11.1.13(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.13(@nestjs/common@11.1.13(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(reflect-metadata@0.2.2)(rxjs@7.8.2))(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)
       '@nestjs/testing':
         specifier: ^11.1.6
         version: 11.1.13(@nestjs/common@11.1.13(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/core@11.1.13(@nestjs/common@11.1.13(class-transformer@0.5.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(reflect-metadata@0.2.2)(rxjs@7.8.2))
@@ -102,9 +108,6 @@ importers:
       '@types/supertest':
         specifier: ^6.0.2
         version: 6.0.3
-      axios:
-        specifier: ^1.11.0
-        version: 1.13.4
       eslint:
         specifier: ^9.33.0
         version: 9.39.2(jiti@2.6.1)
@@ -117,9 +120,6 @@ importers:
       eslint-plugin-prettier:
         specifier: ^5.5.4
         version: 5.5.5(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@9.39.2(jiti@2.6.1)))(eslint@9.39.2(jiti@2.6.1))(prettier@3.8.1)
-      fastify:
-        specifier: ^5.5.0
-        version: 5.7.4
       husky:
         specifier: ^9.1.7
         version: 9.1.7

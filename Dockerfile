@@ -39,6 +39,6 @@ EXPOSE 3000
 
 # 健康检查（可选但推荐）
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
+  CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
 
 CMD ["node", "dist/src/main"]

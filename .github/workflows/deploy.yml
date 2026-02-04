@@ -59,7 +59,7 @@ jobs:
             set -e
             cd /opt/scx-service
             # 生成 .env 文件（关键步骤，之前缺少）
-            cat > .env <<EOF
+            cat > .env <<'EOF'
           # 应用配置
           NODE_ENV=production
           PORT=${{ secrets.PORT || '3000' }}
@@ -109,16 +109,17 @@ jobs:
           AI_LOG_TOKENS=${{ secrets.AI_LOG_TOKENS || 'true' }}
 
           # GitHub Copilot 配置
-          COPILOT_BASE_URL=${{ secrets.COPILOT_BASE_URL }}
+          COPILOT_BASE_URL=${{ secrets.COPILOT_BASE_URL || '' }}
+          COPILOT_MODEL=${{ secrets.COPILOT_MODEL || 'gpt-4' }}
           COPILOT_MODEL=${{ secrets.COPILOT_MODEL }}
 
           # GLM (智谱AI) 配置
-          GLM_BASE_URL=${{ secrets.GLM_BASE_URL }}
-          GLM_MODEL=${{ secrets.GLM_MODEL }}
+          GLM_BASE_URL=${{ secrets.GLM_BASE_URL || '' }}
+          GLM_MODEL=${{ secrets.GLM_MODEL || 'glm-4' }}
 
           # Qwen (阿里通义千问) 配置
-          QWEN_BASE_URL=${{ secrets.QWEN_BASE_URL }}
-          QWEN_MODEL=${{ secrets.QWEN_MODEL }}
+          QWEN_BASE_URL=${{ secrets.QWEN_BASE_URL || '' }}
+          QWEN_MODEL=${{ secrets.QWEN_MODEL || 'qwen-turbo' }}
           EOF
 
           # 验证 .env 生成成功
@@ -128,7 +129,7 @@ jobs:
 
           # 加载镜像并启动
           docker load < scx-service-image.tar.gz
-          docker compose -f docker-compose.prod.yml up -d --force-recreate
+          docker compose --env-file .env -f docker-compose.prod.yml up -d --force-recreate
           rm -f scx-service-image.tar.gz
           docker image prune -f
 
@@ -145,7 +146,7 @@ jobs:
         run: |
           sleep 15
           for i in {1..30}; do
-            if curl -f -s -o /dev/null http://${{ env.ECS_HOST }}:3000/health || \
+            if curl -f -s -o /dev/null http://${{ env.ECS_HOST }}:3000/api/health || \
                curl -f -s -o /dev/null http://${{ env.ECS_HOST }}:3000/api/docs; then
               echo "✓ Deployment successful!"
               exit 0
