@@ -63,9 +63,9 @@ describe('MailService', () => {
       expect(result).toEqual({
         success: true,
         message: '验证码邮件发送成功',
+        code: expect.any(String),
       });
       expect(mailerService.sendMail).toHaveBeenCalled();
-      expect(mockConfigService.get).toHaveBeenCalledWith('NODE_ENV');
     });
 
     it('should return code in development environment', async () => {

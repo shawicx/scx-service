@@ -50,13 +50,10 @@ export class MailService {
       await this.sendMailWithTimeout(mailOptions, this.timeout);
       this.logger.log(`✅ 验证码邮件发送成功: ${to}`);
 
-      // 在开发环境下返回验证码用于调试
-      const isDevelopment = this.configService.get('NODE_ENV') !== 'production';
-
       return {
         success: true,
         message: '验证码邮件发送成功',
-        code: isDevelopment ? code : undefined,
+        code,
       };
     } catch (error: any) {
       const mailError = this.parseMailError(error);
