@@ -66,14 +66,14 @@ jobs:
 
           # 数据库配置 (PostgreSQL)
           DB_HOST=postgres
-          DB_PORT=5433
+          DB_PORT=5432
           DB_USERNAME=${{ secrets.DB_USERNAME }}
           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
           DB_DATABASE=${{ secrets.DB_DATABASE || 'scx-service' }}
 
           # Redis 配置
           REDIS_HOST=redis
-          REDIS_PORT=6388
+          REDIS_PORT=6379
           REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD || '' }}
           REDIS_DB=0
 
