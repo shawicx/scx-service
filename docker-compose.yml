@@ -12,12 +12,12 @@ services:
       - NODE_ENV=development
       - PORT=3000
       - DB_HOST=postgres
-      - DB_PORT=5432
+      - DB_PORT=5433
       - DB_USERNAME=scx
       - DB_PASSWORD=scx_password
       - DB_DATABASE=scx-service
       - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - REDIS_PORT=6388
       - REDIS_PASSWORD=
       - JWT_SECRET=dev_jwt_secret_change_in_production
       - JWT_EXPIRES_IN=7d
@@ -54,7 +54,7 @@ services:
       - POSTGRES_PASSWORD=scx_password
       - POSTGRES_DB=scx-service
     ports:
-      - '5432:5432'
+      - '5433:5433'
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -72,7 +72,7 @@ services:
     container_name: scx-service-redis
     command: redis-server
     ports:
-      - '6379:6379'
+      - '6388:6388'
     volumes:
       - redis-data:/data
     healthcheck:

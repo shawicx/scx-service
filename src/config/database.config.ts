@@ -7,7 +7,7 @@ export const databaseConfig = registerAs('database', (): TypeOrmModuleOptions =>
   return {
     type: 'postgres',
     host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432', 10),
+    port: parseInt(process.env.DB_PORT || '5433', 10),
     username: process.env.DB_USERNAME || 'scx',
     password: process.env.DB_PASSWORD || 'b696a68e45c4',
     database: process.env.DB_DATABASE || 'scx-service',
