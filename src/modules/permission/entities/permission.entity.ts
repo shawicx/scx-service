@@ -3,6 +3,8 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -27,6 +29,33 @@ export class Permission {
   @Column({ length: 255, nullable: true })
   description: string;
 
+  @Column({ length: 20, comment: '权限类型：MENU-菜单, BUTTON-按钮' })
+  @Index()
+  type: 'MENU' | 'BUTTON';
+
+  @Column({ type: 'uuid', nullable: true, comment: '父权限ID（树形结构）' })
+  @Index()
+  parentId: string | null;
+
+  @Column({ type: 'int', default: 0, comment: '层级：0-根菜单, 1-一级菜单, 2-二级菜单, 3-按钮' })
+  @Index()
+  level: number;
+
+  @Column({ length: 200, nullable: true, comment: '路由路径（菜单用）' })
+  path: string | null;
+
+  @Column({ length: 100, nullable: true, comment: '图标（菜单用）' })
+  icon: string | null;
+
+  @Column({ type: 'int', default: 0, comment: '排序号' })
+  sort: number;
+
+  @Column({ type: 'tinyint', default: 1, comment: '是否可见：0-隐藏, 1-显示' })
+  visible: number;
+
+  @Column({ type: 'tinyint', default: 1, comment: '状态：0-禁用, 1-启用' })
+  status: number;
+
   @CreateDateColumn({ type: 'timestamp', precision: 6 })
   createdAt: Date;
 
@@ -36,4 +65,12 @@ export class Permission {
   // 关系定义
   @OneToMany('RolePermission', 'permission')
   rolePermissions: any[];
+
+  // 树形结构关系
+  @ManyToOne(() => Permission, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'parentId' })
+  parent: Permission | null;
+
+  @OneToMany(() => Permission, (p) => p.parent)
+  children: Permission[];
 }

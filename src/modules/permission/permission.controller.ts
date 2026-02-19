@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   CreatePermissionDto,
+  PermissionMenuTreeDto,
   PermissionQueryDto,
   PermissionResponseDto,
+  PermissionTreeResponseDto,
   UpdatePermissionDto,
 } from './dto/permission.dto';
 import { PermissionService } from './permission.service';
@@ -16,7 +18,7 @@ export class PermissionController {
   @Post()
   @ApiOperation({
     summary: '创建权限',
-    description: '创建新的权限，权限名称和动作-资源组合必须唯一',
+    description: '创建新的权限，支持菜单和按钮类型',
   })
   @ApiBody({ type: CreatePermissionDto })
   @ApiResponse({
@@ -26,7 +28,7 @@ export class PermissionController {
   })
   @ApiResponse({
     status: 409,
-    description: '权限名称或动作-资源组合已存在',
+    description: '权限名称已存在',
   })
   async create(@Body() createPermissionDto: CreatePermissionDto): Promise<PermissionResponseDto> {
     return await this.permissionService.create(createPermissionDto);
@@ -66,6 +68,23 @@ export class PermissionController {
     required: false,
     description: '按资源筛选',
     example: 'user',
+  })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    description: '按类型筛选（MENU/BUTTON）',
+    example: 'MENU',
+  })
+  @ApiQuery({
+    name: 'parentId',
+    required: false,
+    description: '按父权限ID筛选',
+  })
+  @ApiQuery({
+    name: 'level',
+    required: false,
+    description: '按层级筛选',
+    example: 1,
   })
   @ApiResponse({
     status: 200,
@@ -228,16 +247,95 @@ export class PermissionController {
   })
   @ApiResponse({
     status: 409,
-    description: '权限名称或动作-资源组合已存在',
+    description: '权限名称已存在',
   })
   async update(@Body() updatePermissionDto: UpdatePermissionDto): Promise<PermissionResponseDto> {
     return await this.permissionService.update(updatePermissionDto.id, updatePermissionDto);
   }
 
+  @Get('tree')
+  @ApiOperation({
+    summary: '获取权限树',
+    description: '获取完整的权限树形结构',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '权限树获取成功',
+    type: [PermissionTreeResponseDto],
+  })
+  async getTree(): Promise<PermissionTreeResponseDto[]> {
+    return await this.permissionService.getTree();
+  }
+
+  @Get('menu-tree')
+  @ApiOperation({
+    summary: '获取菜单树',
+    description: '获取菜单树形结构（不含按钮）',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '菜单树获取成功',
+    type: [PermissionMenuTreeDto],
+  })
+  async getMenuTree(): Promise<PermissionMenuTreeDto[]> {
+    return await this.permissionService.getMenuTree();
+  }
+
+  @Get('level-1')
+  @ApiOperation({
+    summary: '获取一级菜单',
+    description: '获取所有一级菜单',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '一级菜单列表获取成功',
+    type: [PermissionResponseDto],
+  })
+  async getFirstLevelMenus(): Promise<PermissionResponseDto[]> {
+    return await this.permissionService.getFirstLevelMenus();
+  }
+
+  @Get('by-level')
+  @ApiOperation({
+    summary: '按层级获取权限',
+    description: '根据层级获取权限列表',
+  })
+  @ApiQuery({
+    name: 'level',
+    description: '层级（0-3）',
+    example: 1,
+  })
+  @ApiResponse({
+    status: 200,
+    description: '权限列表获取成功',
+    type: [PermissionResponseDto],
+  })
+  async getByLevel(@Query('level') level: string): Promise<PermissionResponseDto[]> {
+    return await this.permissionService.getByLevel(+level);
+  }
+
+  @Get(':menuId/buttons')
+  @ApiOperation({
+    summary: '获取菜单下的按钮',
+    description: '获取指定菜单下的所有按钮',
+  })
+  @ApiQuery({
+    name: 'menuId',
+    description: '菜单ID',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '按钮列表获取成功',
+    type: [PermissionResponseDto],
+  })
+  async getButtonsByMenuId(@Param('menuId') menuId: string): Promise<PermissionResponseDto[]> {
+    return await this.permissionService.getButtonsByMenuId(menuId);
+  }
+
   @Delete()
   @ApiOperation({
     summary: '删除权限',
-    description: '删除权限，如果权限已分配给角色则无法删除',
+    description: '删除权限及其子权限，如果权限已分配给角色则无法删除',
   })
   @ApiQuery({
     name: 'id',
@@ -257,7 +355,7 @@ export class PermissionController {
     description: '权限已分配给角色，无法删除',
   })
   async delete(@Query('id') id: string): Promise<{ message: string }> {
-    await this.permissionService.delete(id);
+    await this.permissionService.deleteCascade(id);
     return { message: '权限删除成功' };
   }
 }
