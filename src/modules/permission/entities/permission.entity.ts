@@ -39,7 +39,11 @@ export class Permission {
   @Index()
   parentId: string | null;
 
-  @Column({ type: 'int', default: 0, comment: '层级：0-根菜单, 1-一级菜单, 2-二级菜单, 3-按钮' })
+  @Column({
+    type: 'int',
+    default: 0,
+    comment: '层级：0-根菜单, 1-一级菜单, 2-二级菜单或一级菜单下的按钮, 3-二级菜单下的按钮',
+  })
   @Index()
   level: number;
 

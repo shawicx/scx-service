@@ -62,10 +62,10 @@ export class PermissionService {
     }
 
     if (type === 'BUTTON') {
-      if (parent.level !== 2) {
-        throw SystemException.invalidParameter('按钮必须挂在二级菜单下');
+      if (parent.level !== 1 && parent.level !== 2) {
+        throw SystemException.invalidParameter('按钮必须挂在一级或二级菜单下');
       }
-      return 3;
+      return parent.level + 1;
     } else {
       if (parent.level !== 1) {
         throw SystemException.invalidParameter('二级菜单必须挂在一级菜单下');

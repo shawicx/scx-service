@@ -77,11 +77,12 @@ describe('PermissionService', () => {
       expect(level).toBe(3);
     });
 
-    it('should throw error for button not under level 2 menu', async () => {
+    it('should return level 2 for button under level 1 menu', async () => {
       const mockParent = { id: '1', level: 1 };
       mockPermissionRepository.findOne.mockResolvedValue(mockParent);
 
-      await expect(permissionService.calculateLevel('1', 'BUTTON')).rejects.toThrow();
+      const level = await permissionService.calculateLevel('1', 'BUTTON');
+      expect(level).toBe(2);
     });
 
     it('should throw error for second-level menu not under level 1 menu', async () => {
