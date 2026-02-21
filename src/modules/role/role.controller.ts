@@ -56,7 +56,7 @@ export class RoleController {
     schema: {
       type: 'object',
       properties: {
-        roles: {
+        list: {
           type: 'array',
           items: { $ref: '#/components/schemas/RoleResponseDto' },
         },
@@ -67,7 +67,7 @@ export class RoleController {
   async findAll(
     @Query('page') page = 1,
     @Query('limit') limit = 10,
-  ): Promise<{ roles: RoleResponseDto[]; total: number }> {
+  ): Promise<{ list: RoleResponseDto[]; total: number }> {
     return await this.roleService.findAll(+page, +limit);
   }
 

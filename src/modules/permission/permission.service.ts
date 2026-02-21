@@ -81,7 +81,7 @@ export class PermissionService {
     queryDto: PermissionQueryDto = {},
     page = 1,
     limit = 10,
-  ): Promise<{ permissions: PermissionResponseDto[]; total: number }> {
+  ): Promise<{ list: PermissionResponseDto[]; total: number }> {
     const skip = (page - 1) * limit;
 
     const queryBuilder: SelectQueryBuilder<Permission> = this.permissionRepository
@@ -121,7 +121,7 @@ export class PermissionService {
     const [permissions, total] = await queryBuilder.getManyAndCount();
 
     return {
-      permissions: permissions.map((permission) => new PermissionResponseDto(permission)),
+      list: permissions.map((permission) => new PermissionResponseDto(permission)),
       total,
     };
   }

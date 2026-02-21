@@ -92,7 +92,7 @@ export class PermissionController {
     schema: {
       type: 'object',
       properties: {
-        permissions: {
+        list: {
           type: 'array',
           items: { $ref: '#/components/schemas/PermissionResponseDto' },
         },
@@ -102,7 +102,7 @@ export class PermissionController {
   })
   async findAll(
     @Query() queryDto: PermissionQueryDto,
-  ): Promise<{ permissions: PermissionResponseDto[]; total: number }> {
+  ): Promise<{ list: PermissionResponseDto[]; total: number }> {
     const { page = 1, limit = 10, ...filters } = queryDto;
     return await this.permissionService.findAll(filters, page, limit);
   }

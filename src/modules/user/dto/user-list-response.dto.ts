@@ -75,7 +75,7 @@ export class UserListResponseDto {
     description: '用户列表',
     type: [UserListItemDto],
   })
-  users: UserListItemDto[];
+  list: UserListItemDto[];
 
   @ApiProperty({
     description: '总数',

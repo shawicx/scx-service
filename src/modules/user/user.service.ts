@@ -589,7 +589,7 @@ export class UserService {
     const [users, total] = await queryBuilder.getManyAndCount();
 
     return new UserListResponseDto({
-      users: users.map((user) => new UserListItemDto(user)),
+      list: users.map((user) => new UserListItemDto(user)),
       total,
       page,
       limit,

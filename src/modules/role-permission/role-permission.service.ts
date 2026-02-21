@@ -137,10 +137,7 @@ export class RolePermissionService {
   /**
    * Find all role-permission assignments with optional pagination
    */
-  async findAll(
-    page = 1,
-    limit = 10,
-  ): Promise<{ rolePermissions: RolePermission[]; total: number }> {
+  async findAll(page = 1, limit = 10): Promise<{ list: RolePermission[]; total: number }> {
     const skip = (page - 1) * limit;
 
     const [rolePermissions, total] = await this.rolePermissionRepository.findAndCount({
@@ -150,7 +147,7 @@ export class RolePermissionService {
       order: { createdAt: 'DESC' },
     });
 
-    return { rolePermissions, total };
+    return { list: rolePermissions, total };
   }
 
   /**

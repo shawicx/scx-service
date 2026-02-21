@@ -98,7 +98,7 @@ export class UserRoleService {
   /**
    * Find all user-role assignments with optional pagination
    */
-  async findAll(page = 1, limit = 10): Promise<{ userRoles: UserRole[]; total: number }> {
+  async findAll(page = 1, limit = 10): Promise<{ list: UserRole[]; total: number }> {
     const skip = (page - 1) * limit;
 
     const [userRoles, total] = await this.userRoleRepository.findAndCount({
@@ -108,7 +108,7 @@ export class UserRoleService {
       order: { createdAt: 'DESC' },
     });
 
-    return { userRoles, total };
+    return { list: userRoles, total };
   }
 
   /**

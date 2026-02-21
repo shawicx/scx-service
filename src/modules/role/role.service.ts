@@ -61,7 +61,7 @@ export class RoleService {
   /**
    * Find all roles with optional pagination
    */
-  async findAll(page = 1, limit = 10): Promise<{ roles: RoleResponseDto[]; total: number }> {
+  async findAll(page = 1, limit = 10): Promise<{ list: RoleResponseDto[]; total: number }> {
     const skip = (page - 1) * limit;
 
     const [roles, total] = await this.roleRepository.findAndCount({
@@ -71,7 +71,7 @@ export class RoleService {
     });
 
     return {
-      roles: roles.map((role) => new RoleResponseDto(role)),
+      list: roles.map((role) => new RoleResponseDto(role)),
       total,
     };
   }
