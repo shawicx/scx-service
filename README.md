@@ -49,7 +49,7 @@
 - **运行环境**: Node.js v20+
 - **框架**: NestJS v11
 - **ORM**: TypeORM v0.3
-- **数据库**: PostgreSQL / Better-SQLite3
+- **数据库**: PostgreSQL
 - **缓存**: Redis v5
 - **HTTP 服务器**: Fastify v5
 - **日志**: Winston v3
@@ -130,7 +130,7 @@
 
 - Node.js v20 或更高版本
 - pnpm 包管理器
-- PostgreSQL 或 Better-SQLite3
+- PostgreSQL
 - Redis 服务
 
 ### 安装步骤
@@ -147,10 +147,7 @@ pnpm install
 cp .env.example .env
 # 编辑 .env 文件，配置数据库、Redis、邮件等服务
 
-# 运行数据库迁移（如需要）
-pnpm run migration:run
-
-# 启动开发服务器
+# 启动开发服务器（开发环境 TypeORM synchronize: true 会自动建表）
 pnpm run dev
 ```
 
@@ -180,9 +177,8 @@ REDIS_HOST=localhost
 REDIS_PORT=6388
 REDIS_PASSWORD=
 
-# JWT 配置
+# JWT 配置（自定义 HMAC-SHA256 实现，有效期由 Redis TTL 控制）
 JWT_SECRET=your_jwt_secret
-JWT_EXPIRES_IN=7d
 
 # 邮件配置
 MAIL_HOST=smtp.example.com
@@ -200,9 +196,9 @@ AI_MAX_TOKENS_LIMIT=4096
 
 # AI 平台配置
 COPILOT_BASE_URL=https://api.githubcopilot.com
-COPILOT_MODEL=gpt-4
-GLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4
-GLM_MODEL=glm-4
+COPILOT_MODEL=gpt-5
+GLM_BASE_URL=https://open.bigmodel.cn/api/paas/v4/
+GLM_MODEL=glm-4.7
 QWEN_BASE_URL=https://dashscope.aliyuncs.com/api/v1
 QWEN_MODEL=qwen-turbo
 ```
