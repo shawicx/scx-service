@@ -1,5 +1,6 @@
 import { AdminGuard } from '@/common/guards/admin.guard';
 import { Public } from '@/common/decorators/public.decorator';
+import { getClientIp } from '@/common/utils/ip.util';
 import {
   Body,
   ClassSerializerInterceptor,
@@ -80,7 +81,7 @@ export class UserController {
     @Body() registerUserDto: RegisterUserDto,
     @Req() request: FastifyRequest,
   ): Promise<UserResponseDto> {
-    const clientIp = this.getClientIp(request);
+    const clientIp = getClientIp(request);
     return this.userService.register(registerUserDto, clientIp);
   }
 
@@ -100,7 +101,7 @@ export class UserController {
     @Body() loginUserDto: LoginUserDto,
     @Req() request: FastifyRequest,
   ): Promise<LoginResponseDto> {
-    const clientIp = this.getClientIp(request);
+    const clientIp = getClientIp(request);
     return this.userService.loginWithEmailCode(loginUserDto, clientIp);
   }
 
@@ -131,7 +132,7 @@ export class UserController {
     @Body() loginWithPasswordDto: LoginWithPasswordDto,
     @Req() request: FastifyRequest,
   ): Promise<LoginResponseDto> {
-    const clientIp = this.getClientIp(request);
+    const clientIp = getClientIp(request);
     return this.userService.loginWithPassword(
       loginWithPasswordDto,
       loginWithPasswordDto.keyId,
@@ -665,19 +666,5 @@ export class UserController {
 
     const count = await this.userService.toggleUserStatus(currentUserId, toggleUserStatusDto);
     return { count, message: '状态更新成功' };
-  }
-
-  /**
-   * 获取客户端真实IP地址
-   */
-  private getClientIp(request: any): string {
-    return (
-      request.headers['x-forwarded-for']?.split(',')[0] ||
-      request.headers['x-real-ip'] ||
-      request.connection?.remoteAddress ||
-      request.socket?.remoteAddress ||
-      request.ip ||
-      '127.0.0.1'
-    );
   }
 }

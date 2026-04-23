@@ -1,11 +1,14 @@
-import { CallHandler, ExecutionContext, Injectable, Logger, NestInterceptor } from '@nestjs/common';
+import { CallHandler, ExecutionContext, Inject, Injectable, NestInterceptor } from '@nestjs/common';
 import { FastifyReply, FastifyRequest } from 'fastify';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
+import { getClientIp } from '@/common/utils/ip.util';
 
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
-  private readonly logger = new Logger(LoggingInterceptor.name);
+  constructor(@Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const ctx = context.switchToHttp();
@@ -14,12 +17,13 @@ export class LoggingInterceptor implements NestInterceptor {
 
     const { method, url, headers, body, query } = request;
     const userAgent = headers['user-agent'] || '';
-    const ip = this.getClientIp(request);
+    const ip = getClientIp(request);
     const startTime = Date.now();
 
-    // 记录请求信息
+    // 记录请求信息到 access 日志
     const requestLog = {
-      timestamp: new Date().toISOString(),
+      logType: 'access',
+      direction: 'request',
       method,
       url,
       ip,
@@ -29,17 +33,17 @@ export class LoggingInterceptor implements NestInterceptor {
       headers: this.sanitizeHeaders(headers),
     };
 
-    this.logger.log(`📥 ${method} ${url} - ${ip}`, 'REQUEST');
-    this.logger.debug('Request Details', JSON.stringify(requestLog));
+    this.logger.info(`${method} ${url} - ${ip}`, requestLog);
 
     return next.handle().pipe(
       tap((data) => {
         const duration = Date.now() - startTime;
         const { statusCode } = response;
 
-        // 记录成功响应
+        // 记录成功响应到 access 日志
         const responseLog = {
-          timestamp: new Date().toISOString(),
+          logType: 'access',
+          direction: 'response',
           method,
           url,
           statusCode,
@@ -48,16 +52,15 @@ export class LoggingInterceptor implements NestInterceptor {
           responseSize: JSON.stringify(data).length,
         };
 
-        this.logger.log(`📤 ${method} ${url} - ${statusCode} - ${duration}ms - ${ip}`, 'RESPONSE');
-        this.logger.debug('Response Details', JSON.stringify(responseLog, null, 2));
+        this.logger.info(`${method} ${url} - ${statusCode} - ${duration}ms - ${ip}`, responseLog);
       }),
       catchError((error) => {
         const duration = Date.now() - startTime;
         const statusCode = error.status || 500;
 
-        // 记录错误响应
-        const errorLog = {
-          timestamp: new Date().toISOString(),
+        // 记录错误响应到 error 日志
+        this.logger.error(`${method} ${url} - ${statusCode} - ${duration}ms - ${ip}`, {
+          context: 'LoggingInterceptor',
           method,
           url,
           statusCode,
@@ -65,22 +68,10 @@ export class LoggingInterceptor implements NestInterceptor {
           ip,
           error: error.message,
           stack: error.stack,
-        };
-
-        this.logger.error(`❌ ${method} ${url} - ${statusCode} - ${duration}ms - ${ip}`, 'ERROR');
-        this.logger.debug('Error Details', JSON.stringify(errorLog, null, 2));
+        });
 
         return throwError(() => error);
       }),
-    );
-  }
-
-  private getClientIp(request: FastifyRequest): string {
-    return (
-      (request.headers['x-forwarded-for'] as string)?.split(',')[0] ||
-      (request.headers['x-real-ip'] as string) ||
-      request.ip ||
-      '127.0.0.1'
     );
   }
 

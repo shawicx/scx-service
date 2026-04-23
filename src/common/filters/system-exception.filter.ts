@@ -1,6 +1,7 @@
 import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus, Logger } from '@nestjs/common';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { SystemException, SystemErrorCode } from '../exceptions/system.exception';
+import { getClientIp } from '@/common/utils/ip.util';
 
 /**
  * 系统业务异常过滤器
@@ -34,7 +35,7 @@ export class SystemExceptionFilter implements ExceptionFilter {
         code: exception.code,
         url: request.url,
         method: request.method,
-        ip: this.getClientIp(request),
+        ip: getClientIp(request),
         userAgent: request.headers['user-agent'],
         data: exception.data,
       },
@@ -42,15 +43,6 @@ export class SystemExceptionFilter implements ExceptionFilter {
     );
 
     response.status(httpStatus).send(errorResponse);
-  }
-
-  private getClientIp(request: FastifyRequest): string {
-    return (
-      (request.headers['x-forwarded-for'] as string)?.split(',')[0] ||
-      (request.headers['x-real-ip'] as string) ||
-      request.ip ||
-      '127.0.0.1'
-    );
   }
 
   /**

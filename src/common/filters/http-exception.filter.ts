@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { FastifyReply, FastifyRequest } from 'fastify';
+import { getClientIp } from '@/common/utils/ip.util';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -49,7 +50,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       message,
       error,
       userAgent: request.headers['user-agent'],
-      ip: this.getClientIp(request),
+      ip: getClientIp(request),
     };
 
     if (status >= 500) {
@@ -68,14 +69,5 @@ export class HttpExceptionFilter implements ExceptionFilter {
     };
 
     response.status(status).send(errorResponse);
-  }
-
-  private getClientIp(request: FastifyRequest): string {
-    return (
-      (request.headers['x-forwarded-for'] as string)?.split(',')[0] ||
-      (request.headers['x-real-ip'] as string) ||
-      request.ip ||
-      '127.0.0.1'
-    );
   }
 }

@@ -4,6 +4,7 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import { AssignRoleDto, AssignRolesDto } from './dto/user-role.dto';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
+import { getClientIp } from '@/common/utils/ip.util';
 
 describe('UserController', () => {
   let userController: UserController;
@@ -55,7 +56,7 @@ describe('UserController', () => {
 
       const mockRequest = {
         headers: {},
-        connection: { remoteAddress: '127.0.0.1' },
+        ip: '127.0.0.1',
       };
 
       const expectedResult: any = {
@@ -102,7 +103,7 @@ describe('UserController', () => {
 
       const mockRequest = {
         headers: {},
-        connection: { remoteAddress: '127.0.0.1' },
+        ip: '127.0.0.1',
       };
 
       const mockUser = {
@@ -143,7 +144,7 @@ describe('UserController', () => {
       const keyId = 'key123';
       const mockRequest = {
         headers: {},
-        connection: { remoteAddress: '127.0.0.1' },
+        ip: '127.0.0.1',
       };
 
       const mockUser = {
@@ -401,9 +402,10 @@ describe('UserController', () => {
         headers: {
           'x-forwarded-for': '192.168.1.1, 10.0.0.1',
         },
+        ip: '10.0.0.1',
       };
 
-      const result = (userController as any).getClientIp(mockRequest);
+      const result = getClientIp(mockRequest as any);
 
       expect(result).toBe('192.168.1.1');
     });
@@ -413,23 +415,21 @@ describe('UserController', () => {
         headers: {
           'x-real-ip': '192.168.1.2',
         },
-        connection: {},
+        ip: '10.0.0.1',
       };
 
-      const result = (userController as any).getClientIp(mockRequest);
+      const result = getClientIp(mockRequest as any);
 
       expect(result).toBe('192.168.1.2');
     });
 
-    it('should get client IP from connection.remoteAddress', () => {
+    it('should get client IP from request.ip', () => {
       const mockRequest = {
         headers: {},
-        connection: {
-          remoteAddress: '192.168.1.3',
-        },
+        ip: '192.168.1.3',
       };
 
-      const result = (userController as any).getClientIp(mockRequest);
+      const result = getClientIp(mockRequest as any);
 
       expect(result).toBe('192.168.1.3');
     });
@@ -437,10 +437,9 @@ describe('UserController', () => {
     it('should return default IP if no IP found', () => {
       const mockRequest = {
         headers: {},
-        connection: {},
       };
 
-      const result = (userController as any).getClientIp(mockRequest);
+      const result = getClientIp(mockRequest as any);
 
       expect(result).toBe('127.0.0.1');
     });
