@@ -5,7 +5,7 @@ import { User } from '../entities/user.entity';
 export class LoginResponseDto {
   @ApiProperty({
     description: '用户ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
   })
   @Expose()
   id: string;

@@ -50,7 +50,7 @@ export class CreatePermissionDto {
 
   @ApiProperty({
     description: '父权限ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
     required: false,
   })
   @IsOptional()
@@ -134,7 +134,7 @@ export class CreatePermissionDto {
 export class UpdatePermissionDto {
   @ApiProperty({
     description: '权限ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
   })
   @IsString({ message: '权限ID必须是字符串' })
   @IsNotEmpty({ message: '权限ID不能为空' })
@@ -189,7 +189,7 @@ export class UpdatePermissionDto {
 
   @ApiProperty({
     description: '父权限ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
     required: false,
   })
   @IsOptional()
@@ -283,7 +283,7 @@ export class UpdatePermissionDto {
 export class PermissionResponseDto {
   @ApiProperty({
     description: '权限ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
   })
   id: string;
 
@@ -316,7 +316,7 @@ export class PermissionResponseDto {
 
   @ApiProperty({
     description: '父权限ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
     nullable: true,
   })
   parentId: string | null;
@@ -448,7 +448,7 @@ export class PermissionQueryDto {
 
   @ApiProperty({
     description: '按父权限ID筛选',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
     required: false,
   })
   @IsOptional()

@@ -49,7 +49,7 @@ export class CreateRoleDto {
 export class UpdateRoleDto {
   @ApiProperty({
     description: '角色ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
   })
   @IsString({ message: '角色ID必须是字符串' })
   @IsNotEmpty({ message: '角色ID不能为空' })
@@ -103,7 +103,7 @@ export class UpdateRoleDto {
 export class RoleResponseDto {
   @ApiProperty({
     description: '角色ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
   })
   id: string;
 
@@ -152,7 +152,7 @@ export class RoleResponseDto {
 export class AssignPermissionsDto {
   @ApiProperty({
     description: '角色ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
   })
   @IsString({ message: '角色ID必须是字符串' })
   @IsNotEmpty({ message: '角色ID不能为空' })

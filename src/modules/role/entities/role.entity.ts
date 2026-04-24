@@ -5,21 +5,11 @@
  * @LastEditTime: 2025-08-23 21:55:54
  * @Description:
  */
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  Index,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, CreateDateColumn, Entity, Index, OneToMany, UpdateDateColumn } from 'typeorm';
+import { BaseEntity } from '@/common/base/base.entity';
 
 @Entity('roles')
-export class Role {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class Role extends BaseEntity {
   @Column({ length: 50 })
   @Index({ unique: true })
   name: string;

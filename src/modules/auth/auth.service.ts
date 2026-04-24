@@ -10,6 +10,7 @@ import {
 } from '@/common/utils/ttl.constants';
 import { Injectable } from '@nestjs/common';
 import * as crypto from 'crypto';
+import { ulid } from 'ulid';
 import { CacheService } from '../cache/cache.service';
 
 @Injectable()
@@ -202,7 +203,7 @@ export class AuthService {
    */
   async generateEncryptionKey(): Promise<{ key: string; keyId: string }> {
     const key = crypto.randomBytes(32).toString('hex');
-    const keyId = crypto.randomUUID();
+    const keyId = ulid();
 
     // 密钥有效期5分钟
     await this.cacheService.setWithMilliseconds(

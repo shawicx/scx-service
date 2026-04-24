@@ -5,7 +5,7 @@ import { UserPreferences } from '../entities/user.entity';
 export class UserResponseDto {
   @ApiProperty({
     description: '用户ID',
-    example: '550e8400-e29b-41d4-a716-446655440000',
+    example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
   })
   @Expose()
   id: string;

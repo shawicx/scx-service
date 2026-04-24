@@ -1,25 +1,15 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
+import { BaseEntity } from '@/common/base/base.entity';
 import { Role } from '../../role/entities/role.entity';
 import { User } from '../../user/entities/user.entity';
 
 @Entity('user_roles')
 @Index('uniq_user_role', ['userId', 'roleId'], { unique: true })
-export class UserRole {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column('uuid')
+export class UserRole extends BaseEntity {
+  @Column({ type: 'char', length: 26 })
   userId: string;
 
-  @Column('uuid')
+  @Column({ type: 'char', length: 26 })
   roleId: string;
 
   @CreateDateColumn({ type: 'timestamp', precision: 6 })

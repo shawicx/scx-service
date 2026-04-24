@@ -1,12 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, Index, CreateDateColumn } from 'typeorm';
+import { Entity, Column, Index, CreateDateColumn } from 'typeorm';
+import { BaseEntity } from '@/common/base/base.entity';
 import { AiProviderType } from '../interfaces/ai-provider.interface';
 
 @Entity('ai_requests')
-export class AiRequestEntity {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
-  @Column({ type: 'uuid' })
+export class AiRequestEntity extends BaseEntity {
+  @Column({ type: 'char', length: 26 })
   @Index()
   userId: string;
 

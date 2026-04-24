@@ -6,15 +6,12 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
-  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { BaseEntity } from '@/common/base/base.entity';
 
 @Entity('permissions')
-export class Permission {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class Permission extends BaseEntity {
   @Column({ length: 100 })
   @Index({ unique: true })
   name: string;
@@ -35,7 +32,7 @@ export class Permission {
   })
   type: 'MENU' | 'BUTTON';
 
-  @Column({ type: 'uuid', nullable: true, comment: '父权限ID（树形结构）' })
+  @Column({ type: 'char', length: 26, nullable: true, comment: '父权限ID（树形结构）' })
   @Index()
   parentId: string | null;
 

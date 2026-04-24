@@ -43,7 +43,7 @@ export class LoginWithPasswordDto {
 
   @ApiProperty({
     description: '加密密钥ID（必需，用于解密密码）',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
   })
   @IsString({ message: '密钥ID必须是字符串' })
   keyId: string;

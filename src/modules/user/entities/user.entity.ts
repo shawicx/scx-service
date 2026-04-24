@@ -5,15 +5,12 @@ import {
   Entity,
   Index,
   OneToMany,
-  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { BaseEntity } from '@/common/base/base.entity';
 
 @Entity('users')
-export class User {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
-
+export class User extends BaseEntity {
   @Column({ length: 100 })
   @Index({ unique: true })
   email: string;

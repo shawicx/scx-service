@@ -4,7 +4,7 @@ import { IsNotEmpty, IsString } from 'class-validator';
 export class AssignRoleDto {
   @ApiProperty({
     description: '角色ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
   })
   @IsString({ message: '角色ID必须是字符串' })
   @IsNotEmpty({ message: '角色ID不能为空' })
@@ -12,7 +12,7 @@ export class AssignRoleDto {
 
   @ApiProperty({
     description: '用户ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
   })
   @IsString({ message: '用户ID必须是字符串' })
   @IsNotEmpty({ message: '用户ID不能为空' })
@@ -31,7 +31,7 @@ export class AssignRolesDto {
 
   @ApiProperty({
     description: '用户ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
   })
   @IsString({ message: '用户ID必须是字符串' })
   @IsNotEmpty({ message: '用户ID不能为空' })
@@ -41,19 +41,19 @@ export class AssignRolesDto {
 export class UserRoleResponseDto {
   @ApiProperty({
     description: '用户角色关系ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
   })
   id: string;
 
   @ApiProperty({
     description: '用户ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
   })
   userId: string;
 
   @ApiProperty({
     description: '角色ID',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    example: '01ARZ3NDEKTSV4RRFFQ69G5FAV',
   })
   roleId: string;
 
