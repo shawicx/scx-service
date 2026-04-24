@@ -34,6 +34,9 @@ RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 # 复制编译后的代码
 COPY --from=builder /app/dist ./dist
 
+# 创建日志目录
+RUN mkdir -p /app/logs
+
 ENV NODE_ENV=production
 EXPOSE 3000
 
