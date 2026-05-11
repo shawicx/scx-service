@@ -24,6 +24,7 @@ import { UserRoleModule } from '@/modules/user-role/user-role.module';
 import { UserModule } from '@/modules/user/user.module';
 import { AiModule } from '@/modules/ai/ai.module';
 import { HealthModule } from '@/modules/health/health.module';
+import { SeedModule } from '@/modules/seed/seed.module';
 
 @Module({
   imports: [
@@ -70,6 +71,9 @@ import { HealthModule } from '@/modules/health/health.module';
 
     // 健康检查模块
     HealthModule,
+
+    // 数据初始化
+    SeedModule,
 
     // 日志模块
     WinstonModule.forRootAsync({

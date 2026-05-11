@@ -667,10 +667,6 @@ export class UserService {
    * @returns 是否为超级管理员
    */
   async isSuperAdmin(userId: string): Promise<boolean> {
-    if (userId === '3bdd37b8-1d91-4da2-a2f7-a67fa7b4a78d') {
-      console.log('userId ----', userId);
-      return true;
-    }
     return await this.hasRole(userId, 'SUPER_ADMIN');
   }
 
