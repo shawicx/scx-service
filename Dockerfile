@@ -1,9 +1,9 @@
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
 RUN corepack enable
-RUN corepack use pnpm@latest
+RUN corepack prepare pnpm@latest --activate
 
 COPY package.json pnpm-lock.yaml ./
 
@@ -17,14 +17,14 @@ RUN pnpm run build
 
 # 验证编译结果
 RUN ls -la dist/ && test -f dist/src/main.js
-FROM node:20-alpine AS production
+FROM node:22-alpine AS production
 
 WORKDIR /app
 
 RUN corepack enable
-RUN corepack use pnpm@latest
+RUN corepack prepare pnpm@latest --activate
 
-# 复��� package.json 和 lock 文件
+# 复制 package.json 和 lock 文件
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/pnpm-lock.yaml ./
 
