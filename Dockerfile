@@ -1,4 +1,4 @@
-FROM node:22-alpine AS builder
+FROM node:24-alpine AS builder
 
 WORKDIR /app
 
@@ -8,12 +8,7 @@ RUN corepack prepare pnpm@latest --activate
 COPY package.json pnpm-lock.yaml ./
 
 # 安装所有依赖（包括 devDependencies，用于编译）
-RUN pnpm install --frozen-lockfile \
-  --allow-build="@nestjs/core" \
-  --allow-build="bcrypt" \
-  --allow-build="better-sqlite3" \
-  --allow-build="unrs-resolver" \
-  --allow-build="@scarf/scarf"
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 
