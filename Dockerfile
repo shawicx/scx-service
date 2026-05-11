@@ -8,6 +8,7 @@ RUN corepack prepare pnpm@latest --activate
 COPY package.json pnpm-lock.yaml ./
 
 # 安装所有依赖（包括 devDependencies，用于编译）
+ENV HUSKY=0
 RUN pnpm install --frozen-lockfile
 
 COPY . .
@@ -17,7 +18,7 @@ RUN pnpm run build
 
 # 验证编译结果
 RUN ls -la dist/ && test -f dist/src/main.js
-FROM node:22-alpine AS production
+FROM node:24-alpine AS production
 
 WORKDIR /app
 
@@ -29,6 +30,7 @@ COPY --from=builder /app/package.json ./
 COPY --from=builder /app/pnpm-lock.yaml ./
 
 # 只安装生产依赖
+ENV HUSKY=0
 RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 
 # 复制编译后的代码
