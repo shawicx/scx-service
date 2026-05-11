@@ -8,7 +8,12 @@ RUN corepack prepare pnpm@latest --activate
 COPY package.json pnpm-lock.yaml ./
 
 # 安装所有依赖（包括 devDependencies，用于编译）
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile \
+  --allow-build="@nestjs/core" \
+  --allow-build="bcrypt" \
+  --allow-build="better-sqlite3" \
+  --allow-build="unrs-resolver" \
+  --allow-build="@scarf/scarf"
 
 COPY . .
 
