@@ -1,8 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SystemException } from '@/common/exceptions';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Like, Repository, SelectQueryBuilder } from 'typeorm';
-import { RolePermission } from '../role-permission/entities/role-permission.entity';
+import { PrismaService } from '@/common/prisma/prisma.service';
 import {
   CreatePermissionDto,
   PermissionMenuTreeDto,
@@ -11,18 +9,12 @@ import {
   PermissionTreeResponseDto,
   UpdatePermissionDto,
 } from './dto/permission.dto';
-import { Permission } from './entities/permission.entity';
 
 @Injectable()
 export class PermissionService {
   private readonly logger = new Logger(PermissionService.name);
 
-  constructor(
-    @InjectRepository(Permission)
-    private readonly permissionRepository: Repository<Permission>,
-    @InjectRepository(RolePermission)
-    private readonly rolePermissionRepository: Repository<RolePermission>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /**
    * Create a new permission
@@ -33,16 +25,16 @@ export class PermissionService {
       createPermissionDto.type,
     );
 
-    const permission = this.permissionRepository.create({
-      ...createPermissionDto,
-      level,
+    const permission = await this.prisma.permission.create({
+      data: {
+        ...createPermissionDto,
+        level,
+      },
     });
 
-    const savedPermission = await this.permissionRepository.save(permission);
+    this.logger.log(`✅ Permission created: ${permission.name} (${permission.type})`);
 
-    this.logger.log(`✅ Permission created: ${savedPermission.name} (${savedPermission.type})`);
-
-    return new PermissionResponseDto(savedPermission);
+    return new PermissionResponseDto(permission as any);
   }
 
   /**
@@ -56,7 +48,7 @@ export class PermissionService {
       return 1;
     }
 
-    const parent = await this.permissionRepository.findOne({ where: { id: parentId } });
+    const parent = await this.prisma.permission.findUnique({ where: { id: parentId } });
     if (!parent) {
       throw SystemException.dataNotFound('父权限不存在');
     }
@@ -84,44 +76,48 @@ export class PermissionService {
   ): Promise<{ list: PermissionResponseDto[]; total: number }> {
     const skip = (page - 1) * limit;
 
-    const queryBuilder: SelectQueryBuilder<Permission> = this.permissionRepository
-      .createQueryBuilder('permission')
-      .orderBy('permission.sort', 'ASC')
-      .addOrderBy('permission.createdAt', 'DESC');
+    const where: any = {};
 
     if (queryDto.search) {
-      queryBuilder.andWhere(
-        '(permission.name LIKE :search OR permission.action LIKE :search OR permission.resource LIKE :search)',
-        { search: `%${queryDto.search}%` },
-      );
+      where.OR = [
+        { name: { contains: queryDto.search, mode: 'insensitive' } },
+        { action: { contains: queryDto.search, mode: 'insensitive' } },
+        { resource: { contains: queryDto.search, mode: 'insensitive' } },
+      ];
     }
 
     if (queryDto.action) {
-      queryBuilder.andWhere('permission.action = :action', { action: queryDto.action });
+      where.action = queryDto.action;
     }
 
     if (queryDto.resource) {
-      queryBuilder.andWhere('permission.resource = :resource', { resource: queryDto.resource });
+      where.resource = queryDto.resource;
     }
 
     if (queryDto.type) {
-      queryBuilder.andWhere('permission.type = :type', { type: queryDto.type });
+      where.type = queryDto.type;
     }
 
     if (queryDto.parentId) {
-      queryBuilder.andWhere('permission.parentId = :parentId', { parentId: queryDto.parentId });
+      where.parentId = queryDto.parentId;
     }
 
     if (queryDto.level !== undefined) {
-      queryBuilder.andWhere('permission.level = :level', { level: queryDto.level });
+      where.level = queryDto.level;
     }
 
-    queryBuilder.skip(skip).take(limit);
-
-    const [permissions, total] = await queryBuilder.getManyAndCount();
+    const [permissions, total] = await this.prisma.$transaction([
+      this.prisma.permission.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: [{ sort: 'asc' }, { createdAt: 'desc' }],
+      }),
+      this.prisma.permission.count({ where }),
+    ]);
 
     return {
-      list: permissions.map((permission) => new PermissionResponseDto(permission)),
+      list: permissions.map((permission) => new PermissionResponseDto(permission as any)),
       total,
     };
   }
@@ -130,37 +126,37 @@ export class PermissionService {
    * Find permission by ID
    */
   async findById(id: string): Promise<PermissionResponseDto> {
-    const permission = await this.permissionRepository.findOne({ where: { id } });
+    const permission = await this.prisma.permission.findUnique({ where: { id } });
 
     if (!permission) {
       throw SystemException.dataNotFound(`Permission with ID '${id}' not found`);
     }
 
-    return new PermissionResponseDto(permission);
+    return new PermissionResponseDto(permission as any);
   }
 
   /**
    * Find permissions by action
    */
   async findByAction(action: string): Promise<PermissionResponseDto[]> {
-    const permissions = await this.permissionRepository.find({
+    const permissions = await this.prisma.permission.findMany({
       where: { action },
-      order: { createdAt: 'DESC' },
+      orderBy: { createdAt: 'desc' },
     });
 
-    return permissions.map((permission) => new PermissionResponseDto(permission));
+    return permissions.map((permission) => new PermissionResponseDto(permission as any));
   }
 
   /**
    * Find permissions by resource
    */
   async findByResource(resource: string): Promise<PermissionResponseDto[]> {
-    const permissions = await this.permissionRepository.find({
+    const permissions = await this.prisma.permission.findMany({
       where: { resource },
-      order: { createdAt: 'DESC' },
+      orderBy: { createdAt: 'desc' },
     });
 
-    return permissions.map((permission) => new PermissionResponseDto(permission));
+    return permissions.map((permission) => new PermissionResponseDto(permission as any));
   }
 
   /**
@@ -170,14 +166,14 @@ export class PermissionService {
     id: string,
     updatePermissionDto: UpdatePermissionDto,
   ): Promise<PermissionResponseDto> {
-    const permission = await this.permissionRepository.findOne({ where: { id } });
+    const permission = await this.prisma.permission.findUnique({ where: { id } });
 
     if (!permission) {
       throw SystemException.dataNotFound(`Permission with ID '${id}' not found`);
     }
 
     if (updatePermissionDto.name && updatePermissionDto.name !== permission.name) {
-      const existingPermission = await this.permissionRepository.findOne({
+      const existingPermission = await this.prisma.permission.findUnique({
         where: { name: updatePermissionDto.name },
       });
 
@@ -199,13 +195,15 @@ export class PermissionService {
         updatePermissionDto.type !== undefined ? updatePermissionDto.type : permission.type;
 
       if (newParentId !== permission.parentId || newType !== permission.type) {
-        const level = await this.calculateLevel(newParentId, newType);
+        const level = await this.calculateLevel(newParentId, newType as 'MENU' | 'BUTTON');
         updateData.level = level;
       }
     }
 
-    Object.assign(permission, updateData);
-    const updatedPermission = await this.permissionRepository.save(permission);
+    const updatedPermission = await this.prisma.permission.update({
+      where: { id },
+      data: updateData,
+    });
 
     this.logger.log(`✅ Permission updated: ${updatedPermission.name}`);
 
@@ -216,13 +214,13 @@ export class PermissionService {
    * Delete permission by ID
    */
   async delete(id: string): Promise<void> {
-    const permission = await this.permissionRepository.findOne({ where: { id } });
+    const permission = await this.prisma.permission.findUnique({ where: { id } });
 
     if (!permission) {
       throw SystemException.dataNotFound(`Permission with ID '${id}' not found`);
     }
 
-    const roleCount = await this.rolePermissionRepository.count({
+    const roleCount = await this.prisma.rolePermission.count({
       where: { permissionId: id },
     });
 
@@ -232,7 +230,7 @@ export class PermissionService {
       );
     }
 
-    await this.permissionRepository.remove(permission);
+    await this.prisma.permission.delete({ where: { id } });
 
     this.logger.log(
       `✅ Permission deleted: ${permission.name} (${permission.action}:${permission.resource})`,
@@ -243,50 +241,60 @@ export class PermissionService {
    * Get all unique actions
    */
   async getUniqueActions(): Promise<string[]> {
-    const result = await this.permissionRepository
-      .createQueryBuilder('permission')
-      .select('DISTINCT permission.action', 'action')
-      .getRawMany();
+    const permissions = await this.prisma.permission.findMany({
+      where: { action: { not: null } },
+      select: { action: true },
+      distinct: ['action'],
+    });
 
-    return result.map((row) => row.action).sort();
+    return permissions
+      .map((p) => p.action)
+      .filter((a): a is string => a !== null)
+      .sort();
   }
 
   /**
    * Get all unique resources
    */
   async getUniqueResources(): Promise<string[]> {
-    const result = await this.permissionRepository
-      .createQueryBuilder('permission')
-      .select('DISTINCT permission.resource', 'resource')
-      .getRawMany();
+    const permissions = await this.prisma.permission.findMany({
+      where: { resource: { not: null } },
+      select: { resource: true },
+      distinct: ['resource'],
+    });
 
-    return result.map((row) => row.resource).sort();
+    return permissions
+      .map((p) => p.resource)
+      .filter((r): r is string => r !== null)
+      .sort();
   }
 
   /**
    * Search permissions by keyword
    */
   async search(keyword: string, limit = 10): Promise<PermissionResponseDto[]> {
-    const permissions = await this.permissionRepository.find({
-      where: [
-        { name: Like(`%${keyword}%`) },
-        { action: Like(`%${keyword}%`) },
-        { resource: Like(`%${keyword}%`) },
-        { description: Like(`%${keyword}%`) },
-      ],
+    const permissions = await this.prisma.permission.findMany({
+      where: {
+        OR: [
+          { name: { contains: keyword, mode: 'insensitive' } },
+          { action: { contains: keyword, mode: 'insensitive' } },
+          { resource: { contains: keyword, mode: 'insensitive' } },
+          { description: { contains: keyword, mode: 'insensitive' } },
+        ],
+      },
       take: limit,
-      order: { createdAt: 'DESC' },
+      orderBy: { createdAt: 'desc' },
     });
 
-    return permissions.map((permission) => new PermissionResponseDto(permission));
+    return permissions.map((permission) => new PermissionResponseDto(permission as any));
   }
 
   /**
    * Get permission tree structure
    */
   async getTree(): Promise<PermissionTreeResponseDto[]> {
-    const permissions = await this.permissionRepository.find({
-      order: { sort: 'ASC', createdAt: 'DESC' },
+    const permissions = await this.prisma.permission.findMany({
+      orderBy: [{ sort: 'asc' }, { createdAt: 'desc' }],
     });
 
     return this.buildTree(permissions);
@@ -296,9 +304,9 @@ export class PermissionService {
    * Get menu tree (without buttons)
    */
   async getMenuTree(): Promise<PermissionMenuTreeDto[]> {
-    const permissions = await this.permissionRepository.find({
+    const permissions = await this.prisma.permission.findMany({
       where: { type: 'MENU', status: 1, visible: 1 },
-      order: { sort: 'ASC', createdAt: 'DESC' },
+      orderBy: [{ sort: 'asc' }, { createdAt: 'desc' }],
     });
 
     return this.buildMenuTree(permissions);
@@ -308,9 +316,9 @@ export class PermissionService {
    * Get buttons by menu ID
    */
   async getButtonsByMenuId(menuId: string): Promise<PermissionResponseDto[]> {
-    const buttons = await this.permissionRepository.find({
+    const buttons = await this.prisma.permission.findMany({
       where: { parentId: menuId, type: 'BUTTON', status: 1 },
-      order: { sort: 'ASC', createdAt: 'DESC' },
+      orderBy: [{ sort: 'asc' }, { createdAt: 'desc' }],
     });
 
     return buttons.map((button) => new PermissionResponseDto(button));
@@ -320,12 +328,12 @@ export class PermissionService {
    * Get permissions by level
    */
   async getByLevel(level: number): Promise<PermissionResponseDto[]> {
-    const permissions = await this.permissionRepository.find({
+    const permissions = await this.prisma.permission.findMany({
       where: { level, status: 1 },
-      order: { sort: 'ASC', createdAt: 'DESC' },
+      orderBy: [{ sort: 'asc' }, { createdAt: 'desc' }],
     });
 
-    return permissions.map((permission) => new PermissionResponseDto(permission));
+    return permissions.map((permission) => new PermissionResponseDto(permission as any));
   }
 
   /**
@@ -338,14 +346,11 @@ export class PermissionService {
   /**
    * Build tree from flat array
    */
-  buildTree(
-    permissions: Permission[],
-    parentId: string | null = null,
-  ): PermissionTreeResponseDto[] {
+  buildTree(permissions: any[], parentId: string | null = null): PermissionTreeResponseDto[] {
     return permissions
       .filter((p) => p.parentId === parentId)
       .map((permission) => {
-        const dto = new PermissionResponseDto(permission) as PermissionTreeResponseDto;
+        const dto = new PermissionResponseDto(permission as any) as PermissionTreeResponseDto;
         dto.children = this.buildTree(permissions, permission.id);
         return dto;
       });
@@ -354,10 +359,7 @@ export class PermissionService {
   /**
    * Build menu tree from permissions
    */
-  buildMenuTree(
-    permissions: Permission[],
-    parentId: string | null = null,
-  ): PermissionMenuTreeDto[] {
+  buildMenuTree(permissions: any[], parentId: string | null = null): PermissionMenuTreeDto[] {
     return permissions
       .filter((p) => p.parentId === parentId)
       .map((permission) => {
@@ -376,7 +378,7 @@ export class PermissionService {
    * Delete permission and its children
    */
   async deleteCascade(id: string): Promise<void> {
-    const permission = await this.permissionRepository.findOne({ where: { id } });
+    const permission = await this.prisma.permission.findUnique({ where: { id } });
 
     if (!permission) {
       throw SystemException.dataNotFound(`Permission with ID '${id}' not found`);
@@ -384,7 +386,7 @@ export class PermissionService {
 
     await this.deleteChildren(id);
 
-    await this.permissionRepository.remove(permission);
+    await this.prisma.permission.delete({ where: { id } });
 
     this.logger.log(`✅ Permission deleted: ${permission.name}`);
   }
@@ -393,11 +395,11 @@ export class PermissionService {
    * Recursively delete children
    */
   private async deleteChildren(parentId: string): Promise<void> {
-    const children = await this.permissionRepository.find({ where: { parentId } });
+    const children = await this.prisma.permission.findMany({ where: { parentId } });
 
     for (const child of children) {
       await this.deleteChildren(child.id);
-      await this.permissionRepository.remove(child);
+      await this.prisma.permission.delete({ where: { id: child.id } });
     }
   }
 }

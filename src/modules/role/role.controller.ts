@@ -1,6 +1,5 @@
 import { Body, Controller, Delete, Get, Post, Put, Query } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Permission } from '../permission/entities/permission.entity';
 import {
   AssignPermissionsDto,
   CreateRoleDto,
@@ -205,13 +204,12 @@ export class RoleController {
   @ApiResponse({
     status: 200,
     description: '权限列表获取成功',
-    type: [Permission],
   })
   @ApiResponse({
     status: 404,
     description: '角色不存在',
   })
-  async getRolePermissions(@Query('id') id: string): Promise<Permission[]> {
+  async getRolePermissions(@Query('id') id: string): Promise<any[]> {
     return await this.roleService.getRolePermissions(id);
   }
 

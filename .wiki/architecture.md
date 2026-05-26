@@ -9,7 +9,6 @@ src/
 ├── swagger-document.ts            # Swagger 文档生成
 ├── config/                        # 配置定义
 │   ├── env.config.ts              # 应用 & Swagger 配置
-│   ├── database.config.ts         # TypeORM / PostgreSQL
 │   ├── redis.config.ts            # Redis 连接
 │   ├── mail.config.ts             # 邮件 SMTP
 │   ├── ai.config.ts               # AI 模块配置
@@ -119,8 +118,9 @@ Request → CORS → ValidationPipe → AuthGuard → [Controller] → Transform
 
 ## 数据库
 
-- TypeORM，PostgreSQL
-- 开发环境 `synchronize: true`，生产环境禁用
-- Entity 全部使用 UUID 主键，支持软删除 (`DeleteDateColumn`)
-- 关系定义使用字符串引用避免循环依赖（如 `@OneToMany('UserRole', 'user')`）
-- 连接池：最大 20 连接，空闲超时 30s，连接超时 2s
+- Prisma ORM，PostgreSQL
+- Schema 定义在 `prisma/schema.prisma`
+- 使用 CUID 作为主键（26 字符）
+- 支持软删除 (`deletedAt` 字段)
+- 关系定义使用 Prisma 的关系语法
+- 连接池：Prisma 默认连接池管理
