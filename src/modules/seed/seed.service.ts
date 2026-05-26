@@ -1,11 +1,23 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { Repository } from 'typeorm';
-import { Role } from '../role/entities/role.entity';
-import { UserRole } from '../user-role/entities/user-role.entity';
-import { User, UserPreferences } from '../user/entities/user.entity';
+import { PrismaService } from '@/common/prisma/prisma.service';
+
+interface UserPreferences {
+  theme?: string;
+  language?: string;
+  timezone?: string;
+  notifications?: {
+    email?: boolean;
+    push?: boolean;
+    sms?: boolean;
+  };
+  privacy?: {
+    profileVisible?: boolean;
+    showEmail?: boolean;
+    showLastSeen?: boolean;
+  };
+}
 
 const SUPER_ADMIN_ROLE_CODE = 'SUPER_ADMIN';
 const SUPER_ADMIN_USER_NAME = 'scx-super-admin';
@@ -32,12 +44,7 @@ export class SeedService implements OnModuleInit {
   private readonly logger = new Logger(SeedService.name);
 
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    @InjectRepository(Role)
-    private readonly roleRepository: Repository<Role>,
-    @InjectRepository(UserRole)
-    private readonly userRoleRepository: Repository<UserRole>,
+    private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
   ) {}
 
@@ -51,23 +58,24 @@ export class SeedService implements OnModuleInit {
 
   private async seed() {
     // 1. 创建 SUPER_ADMIN 角色
-    let superAdminRole = await this.roleRepository.findOne({
+    let superAdminRole = await this.prisma.role.findUnique({
       where: { code: SUPER_ADMIN_ROLE_CODE },
     });
 
     if (!superAdminRole) {
-      superAdminRole = this.roleRepository.create({
-        name: '超级管理员',
-        code: SUPER_ADMIN_ROLE_CODE,
-        description: '系统内置超级管理员角色，拥有所有权限',
-        isSystem: true,
+      superAdminRole = await this.prisma.role.create({
+        data: {
+          name: '超级管理员',
+          code: SUPER_ADMIN_ROLE_CODE,
+          description: '系统内置超级管理员角色，拥有所有权限',
+          isSystem: true,
+        },
       });
-      superAdminRole = await this.roleRepository.save(superAdminRole);
       this.logger.log('已创建 SUPER_ADMIN 角色');
     }
 
     // 2. 创建默认超级管理员用户
-    let adminUser = await this.userRepository.findOne({
+    let adminUser = await this.prisma.user.findUnique({
       where: { email: SUPER_ADMIN_USER_EMAIL },
     });
 
@@ -77,30 +85,37 @@ export class SeedService implements OnModuleInit {
 
       const hashedPassword = await bcrypt.hash(initialPassword, 12);
 
-      adminUser = this.userRepository.create({
-        email: SUPER_ADMIN_USER_EMAIL,
-        name: SUPER_ADMIN_USER_NAME,
-        password: hashedPassword,
-        emailVerified: true,
-        isActive: true,
-        loginCount: 0,
-        preferences: defaultPreferences,
+      adminUser = await this.prisma.user.create({
+        data: {
+          email: SUPER_ADMIN_USER_EMAIL,
+          name: SUPER_ADMIN_USER_NAME,
+          password: hashedPassword,
+          emailVerified: true,
+          isActive: true,
+          loginCount: 0,
+          preferences: defaultPreferences as any,
+        },
       });
-      adminUser = await this.userRepository.save(adminUser);
       this.logger.log(`已创建默认超级管理员用户: ${SUPER_ADMIN_USER_EMAIL}`);
     }
 
     // 3. 关联用户与角色
-    const existingRelation = await this.userRoleRepository.findOne({
-      where: { userId: adminUser.id, roleId: superAdminRole.id },
+    const existingRelation = await this.prisma.userRole.findUnique({
+      where: {
+        uniq_user_role: {
+          userId: adminUser.id,
+          roleId: superAdminRole.id,
+        },
+      },
     });
 
     if (!existingRelation) {
-      const userRole = this.userRoleRepository.create({
-        userId: adminUser.id,
-        roleId: superAdminRole.id,
+      await this.prisma.userRole.create({
+        data: {
+          userId: adminUser.id,
+          roleId: superAdminRole.id,
+        },
       });
-      await this.userRoleRepository.save(userRole);
       this.logger.log('已关联超级管理员用户与角色');
     }
   }

@@ -1,0 +1,145 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// User - 用户表
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique @db.VarChar(100)
+  name      String   @db.VarChar(50)
+  password  String   @db.VarChar(255)
+
+  emailVerified         Boolean  @default(false) @db.Boolean
+  emailVerificationCode String?  @db.VarChar(6)
+  emailVerificationExpiry DateTime? @db.Timestamp
+
+  preferences Json?
+
+  lastLoginIp String?   @db.VarChar(45)
+  lastLoginAt DateTime? @db.Timestamp
+  loginCount  Int       @default(1)
+
+  isActive Boolean @default(true) @db.Boolean
+
+  createdAt DateTime   @default(now()) @db.Timestamp
+  updatedAt DateTime   @updatedAt @db.Timestamp
+  deletedAt DateTime?  @db.Timestamp
+
+  userRoles UserRole[]
+
+  @@index([email])
+  @@index([isActive])
+  @@index([lastLoginIp])
+  @@map("users")
+}
+
+// Role - 角色表
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique @db.VarChar(50)
+  code        String   @unique @db.VarChar(50)
+  description String?  @db.VarChar(255)
+  isSystem    Boolean  @default(false) @db.Boolean
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @db.Timestamp(6)
+
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+// Permission - 权限表（树形结构）
+model Permission {
+  id          String   @id @default(cuid())
+  name        String   @unique @db.VarChar(100)
+  action      String?  @db.VarChar(50)
+  resource    String?  @db.VarChar(100)
+  description String?  @db.VarChar(255)
+  type        String   @default("BUTTON") @db.VarChar(20)
+
+  parentId String? @db.Char(26)
+  level    Int     @default(0)
+
+  path    String? @db.VarChar(200)
+  icon    String? @db.VarChar(100)
+  sort    Int     @default(0)
+  visible Int     @default(1) @db.SmallInt
+  status  Int     @default(1) @db.SmallInt
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+  updatedAt DateTime @updatedAt @db.Timestamp(6)
+
+  rolePermissions RolePermission[]
+  parent          Permission?      @relation("PermissionToPermission", fields: [parentId], references: [id], onDelete: Cascade)
+  children        Permission[]     @relation("PermissionToPermission")
+
+  @@index([parentId])
+  @@index([level])
+  @@map("permissions")
+}
+
+// UserRole - 用户角色关联表
+model UserRole {
+  id        String   @id @default(cuid())
+  userId    String   @db.Char(26)
+  roleId    String   @db.Char(26)
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId], name: "uniq_user_role")
+  @@map("user_roles")
+}
+
+// RolePermission - 角色权限关联表
+model RolePermission {
+  id           String   @id @default(cuid())
+  roleId       String   @db.Char(26)
+  permissionId String   @db.Char(26)
+
+  createdAt DateTime @default(now()) @db.Timestamp(6)
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId], name: "uniq_role_permission")
+  @@map("role_permissions")
+}
+
+// AiRequest - AI 请求记录表
+model AiRequest {
+  id              String   @id @default(cuid())
+  userId          String   @db.Char(26)
+
+  provider  String @db.VarChar(20)
+  messages  Json
+  response  Json?
+
+  promptTokens     Int
+  completionTokens Int
+  totalTokens      Int
+
+  duration     Int     @default(0)
+  isStream     Boolean @default(false) @db.Boolean
+  finishReason String? @db.VarChar(20)
+
+  isCached Boolean @default(false) @db.Boolean
+
+  createdAt DateTime @default(now()) @db.Timestamp
+
+  @@index([userId])
+  @@index([provider])
+  @@index([createdAt])
+  @@map("ai_requests")
+}

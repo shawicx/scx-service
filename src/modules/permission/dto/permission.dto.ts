@@ -378,7 +378,7 @@ export class PermissionResponseDto {
   })
   updatedAt: Date;
 
-  constructor(partial: Partial<PermissionResponseDto>) {
+  constructor(partial: Partial<PermissionResponseDto> | any) {
     Object.assign(this, partial);
   }
 }

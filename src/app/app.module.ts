@@ -1,14 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { WinstonModule } from 'nest-winston';
 import { HttpExceptionFilter } from '@/common/filters/http-exception.filter';
 import { SystemExceptionFilter } from '@/common/filters/system-exception.filter';
 import { AuthGuard } from '@/common/guards/auth.guard';
 import { LoggingInterceptor } from '@/common/interceptors/logging.interceptor';
 import { TransformInterceptor } from '@/common/interceptors/transform.interceptor';
-import { databaseConfig } from '@/config/database.config';
+import { PrismaModule } from '@/common/prisma/prisma.module';
 import { appConfig, swaggerConfig } from '@/config/env.config';
 import { aiConfig } from '@/config/ai.config';
 import { loggerConfig, createWinstonOptions } from '@/config/logger.config';
@@ -33,28 +32,17 @@ import { SeedModule } from '@/modules/seed/seed.module';
       isGlobal: true, // 全局可用
       cache: true, // 缓存配置
       expandVariables: true, // 支持环境变量展开
-      load: [
-        appConfig,
-        swaggerConfig,
-        databaseConfig,
-        redisConfig,
-        mailConfig,
-        aiConfig,
-        loggerConfig,
-      ], // 加载配置
+      load: [appConfig, swaggerConfig, redisConfig, mailConfig, aiConfig, loggerConfig], // 加载配置
     }),
+
+    // Prisma 模块
+    PrismaModule,
 
     // 缓存模块
     CacheConfigModule,
 
     // AI 模块
     AiModule,
-
-    // 数据库模块
-    TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => configService.get('database'),
-    }),
 
     // 认证模块
     AuthModule,

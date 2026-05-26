@@ -1,12 +1,9 @@
 import { CacheService } from '@/modules/cache/cache.service';
-import { User } from '@/modules/user/entities/user.entity';
 import { UserService } from '@/modules/user/user.service';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Observable } from 'rxjs';
-import { Repository } from 'typeorm';
-import { AiRequestEntity } from './entities/ai-request.entity';
+import { PrismaService } from '@/common/prisma/prisma.service';
 import { AiException } from './exceptions/ai.exception';
 import {
   AiMessage,
@@ -29,8 +26,7 @@ export class AiService {
     private readonly configService: ConfigService,
     private readonly cacheService: CacheService,
     private readonly userService: UserService,
-    @InjectRepository(AiRequestEntity)
-    private readonly aiRequestRepository: Repository<AiRequestEntity>,
+    private readonly prisma: PrismaService,
   ) {
     this.cacheTtl = this.configService.get<number>('ai.cacheTtl', 3600);
     this.enableCache = this.configService.get<boolean>('ai.enableCache', true);
@@ -41,7 +37,7 @@ export class AiService {
    * 生成 AI 回复(非流式)
    */
   async generateCompletion(
-    user: User,
+    user: any,
     messages: AiMessage[],
     options: AiRequestOptions = {},
     explicitProvider?: AiProviderType,
@@ -99,7 +95,7 @@ export class AiService {
    * 生成 AI 回复(流式)
    */
   generateCompletionStream(
-    user: User,
+    user: any,
     messages: AiMessage[],
     options: AiRequestOptions = {},
     explicitProvider?: AiProviderType,
@@ -118,7 +114,7 @@ export class AiService {
   /**
    * 测试平台连接
    */
-  async testConnection(user: User, providerType: AiProviderType): Promise<boolean> {
+  async testConnection(user: any, providerType: AiProviderType): Promise<boolean> {
     const provider = this.getProvider(providerType);
     const apiKey = this.getUserApiKey(user, providerType);
 
@@ -146,27 +142,30 @@ export class AiService {
    * 获取用户的请求历史
    */
   async getRequestHistory(
-    user: User,
+    user: any,
     page = 1,
     limit = 20,
-  ): Promise<{ data: AiRequestEntity[]; total: number }> {
-    const [data, total] = await this.aiRequestRepository.findAndCount({
-      where: { userId: user.id },
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+  ): Promise<{ data: any[]; total: number }> {
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.aiRequest.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.aiRequest.count({ where: { userId: user.id } }),
+    ]);
 
     return { data, total };
   }
 
   /**
    * 更新用户 AI 配置
-   * @param user 用户
-   * @param config 配置数据
    */
   async updateUserConfig(
-    user: User,
+    user: any,
     config: {
       defaultProvider?: 'copilot' | 'glm' | 'qwen';
       providers?: {
@@ -226,7 +225,7 @@ export class AiService {
   /**
    * 确定 provider (三级优先级: 显式 > 用户默认 > 系统默认)
    */
-  private determineProvider(user: User, explicitProvider?: AiProviderType): AiProviderType {
+  private determineProvider(user: any, explicitProvider?: AiProviderType): AiProviderType {
     // 优先级1: 显式指定
     if (explicitProvider) {
       return explicitProvider;
@@ -256,7 +255,7 @@ export class AiService {
   /**
    * 获取用户 API 密钥
    */
-  private getUserApiKey(user: User, providerType: AiProviderType): string {
+  private getUserApiKey(user: any, providerType: AiProviderType): string {
     const apiKey = user.preferences?.ai?.providers?.[providerType]?.apiKey;
 
     if (!apiKey) {
@@ -300,7 +299,7 @@ export class AiService {
    * 记录请求日志到数据库
    */
   private async logRequest(
-    user: User,
+    user: any,
     provider: AiProviderType,
     messages: AiMessage[],
     response: AiResponse,
@@ -312,21 +311,21 @@ export class AiService {
     }
 
     try {
-      const requestLog = this.aiRequestRepository.create({
-        userId: user.id,
-        provider,
-        messages: messages as any,
-        response: response as any,
-        promptTokens: response.tokensUsed.prompt,
-        completionTokens: response.tokensUsed.completion,
-        totalTokens: response.tokensUsed.total,
-        duration,
-        isStream: false,
-        finishReason: response.finishReason,
-        isCached,
+      await this.prisma.aiRequest.create({
+        data: {
+          userId: user.id,
+          provider,
+          messages: messages as any,
+          response: response as any,
+          promptTokens: response.tokensUsed.prompt,
+          completionTokens: response.tokensUsed.completion,
+          totalTokens: response.tokensUsed.total,
+          duration,
+          isStream: false,
+          finishReason: response.finishReason,
+          isCached,
+        },
       });
-
-      await this.aiRequestRepository.save(requestLog);
     } catch (error) {
       this.logger.error('记录请求日志失败:', error);
     }

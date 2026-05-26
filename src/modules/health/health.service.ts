@@ -1,6 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource } from 'typeorm';
+import { PrismaService } from '@/common/prisma/prisma.service';
 import { RedisClientType } from 'redis';
 
 @Injectable()
@@ -8,8 +7,7 @@ export class HealthService {
   private readonly logger = new Logger(HealthService.name);
 
   constructor(
-    @InjectDataSource()
-    private readonly dataSource: DataSource,
+    private readonly prisma: PrismaService,
     @Inject('REDIS_CLIENT')
     private readonly redisClient: RedisClientType,
   ) {}
@@ -49,11 +47,7 @@ export class HealthService {
 
   private async checkDatabase(): Promise<{ status: string; message?: string }> {
     try {
-      if (!this.dataSource.isInitialized) {
-        return { status: 'error', message: 'Database not initialized' };
-      }
-
-      await this.dataSource.query('SELECT 1');
+      await this.prisma.$queryRaw`SELECT 1`;
       return { status: 'ok' };
     } catch (error) {
       this.logger.error('Database health check failed', error);

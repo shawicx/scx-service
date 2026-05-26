@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose } from 'class-transformer';
-import { User } from '../entities/user.entity';
 
 export class LoginResponseDto {
   @ApiProperty({
@@ -74,7 +73,7 @@ export class LoginResponseDto {
   @Exclude()
   emailVerificationExpiry: Date;
 
-  constructor(user: User, accessToken?: string, refreshToken?: string) {
+  constructor(user: any, accessToken?: string, refreshToken?: string) {
     this.id = user.id;
     this.email = user.email;
     this.name = user.name;

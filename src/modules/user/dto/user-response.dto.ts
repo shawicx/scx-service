@@ -1,6 +1,41 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Exclude, Expose, Transform } from 'class-transformer';
-import { UserPreferences } from '../entities/user.entity';
+
+export interface UserPreferences {
+  theme?: string;
+  language?: string;
+  timezone?: string;
+  notifications?: {
+    email?: boolean;
+    push?: boolean;
+    sms?: boolean;
+  };
+  privacy?: {
+    profileVisible?: boolean;
+    showEmail?: boolean;
+    showLastSeen?: boolean;
+  };
+  ai?: {
+    defaultProvider?: string;
+    providers?: {
+      copilot?: {
+        apiKey?: string;
+        enabled?: boolean;
+        baseUrl?: string;
+      };
+      glm?: {
+        apiKey?: string;
+        enabled?: boolean;
+        baseUrl?: string;
+      };
+      qwen?: {
+        apiKey?: string;
+        enabled?: boolean;
+        baseUrl?: string;
+      };
+    };
+  };
+}
 
 export class UserResponseDto {
   @ApiProperty({
@@ -107,7 +142,7 @@ export class UserResponseDto {
   @Exclude()
   emailVerificationExpiry: Date;
 
-  constructor(partial: Partial<UserResponseDto>) {
+  constructor(partial: Partial<UserResponseDto> | any) {
     Object.assign(this, partial);
   }
 }

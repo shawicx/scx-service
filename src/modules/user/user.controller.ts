@@ -24,7 +24,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { FastifyRequest } from 'fastify';
-import { Role } from '../role/entities/role.entity';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { LoginUserDto, LoginWithPasswordDto } from './dto/login-user.dto';
 import { QueryUsersDto } from './dto/query-users.dto';
@@ -399,13 +398,12 @@ export class UserController {
   @ApiResponse({
     status: 200,
     description: '用户角色列表获取成功',
-    type: [Role],
   })
   @ApiResponse({
     status: 404,
     description: '用户不存在',
   })
-  async getUserRoles(@Query('id') userId: string): Promise<Role[]> {
+  async getUserRoles(@Query('id') userId: string): Promise<any[]> {
     return await this.userService.getUserRoles(userId);
   }
 

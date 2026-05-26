@@ -13,7 +13,7 @@
 
 | 技术       | 版本             | 用途            |
 | ---------- | ---------------- | --------------- |
-| TypeORM    | 0.3              | ORM             |
+| Prisma     | 7.8              | ORM             |
 | PostgreSQL | -                | 数据库          |
 | Redis      | 5.8 (node-redis) | 缓存/Token 存储 |
 

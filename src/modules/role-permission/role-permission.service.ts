@@ -1,69 +1,61 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { SystemException } from '@/common/exceptions';
-import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
-import { Permission } from '../permission/entities/permission.entity';
-import { Role } from '../role/entities/role.entity';
-import { RolePermission } from './entities/role-permission.entity';
+import { PrismaService } from '@/common/prisma/prisma.service';
 
 @Injectable()
 export class RolePermissionService {
   private readonly logger = new Logger(RolePermissionService.name);
 
-  constructor(
-    @InjectRepository(RolePermission)
-    private readonly rolePermissionRepository: Repository<RolePermission>,
-    @InjectRepository(Role)
-    private readonly roleRepository: Repository<Role>,
-    @InjectRepository(Permission)
-    private readonly permissionRepository: Repository<Permission>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   /**
    * Create role-permission assignment
    */
-  async create(roleId: string, permissionId: string): Promise<RolePermission> {
+  async create(roleId: string, permissionId: string): Promise<any> {
     // Verify role exists
-    const role = await this.roleRepository.findOne({ where: { id: roleId } });
+    const role = await this.prisma.role.findUnique({ where: { id: roleId } });
     if (!role) {
       throw SystemException.dataNotFound(`Role with ID '${roleId}' not found`);
     }
 
     // Verify permission exists
-    const permission = await this.permissionRepository.findOne({ where: { id: permissionId } });
+    const permission = await this.prisma.permission.findUnique({ where: { id: permissionId } });
     if (!permission) {
       throw SystemException.dataNotFound(`Permission with ID '${permissionId}' not found`);
     }
 
     // Check if assignment already exists
-    const existingAssignment = await this.rolePermissionRepository.findOne({
-      where: { roleId, permissionId },
+    const existingAssignment = await this.prisma.rolePermission.findUnique({
+      where: {
+        uniq_role_permission: { roleId, permissionId },
+      },
     });
 
     if (existingAssignment) {
       throw SystemException.resourceExists('Role already has this permission');
     }
 
-    const rolePermission = this.rolePermissionRepository.create({ roleId, permissionId });
-    const savedRolePermission = await this.rolePermissionRepository.save(rolePermission);
+    const rolePermission = await this.prisma.rolePermission.create({
+      data: { roleId, permissionId },
+    });
 
     this.logger.log(`✅ Role permission assigned: Role ${roleId} -> Permission ${permissionId}`);
-    return savedRolePermission;
+    return rolePermission;
   }
 
   /**
    * Bulk create role-permission assignments
    */
-  async createBulk(roleId: string, permissionIds: string[]): Promise<RolePermission[]> {
+  async createBulk(roleId: string, permissionIds: string[]): Promise<any[]> {
     // Verify role exists
-    const role = await this.roleRepository.findOne({ where: { id: roleId } });
+    const role = await this.prisma.role.findUnique({ where: { id: roleId } });
     if (!role) {
       throw SystemException.dataNotFound(`Role with ID '${roleId}' not found`);
     }
 
     // Verify all permissions exist
-    const permissions = await this.permissionRepository.find({
-      where: { id: In(permissionIds) },
+    const permissions = await this.prisma.permission.findMany({
+      where: { id: { in: permissionIds } },
     });
 
     if (permissions.length !== permissionIds.length) {
@@ -73,8 +65,8 @@ export class RolePermissionService {
     }
 
     // Check existing assignments
-    const existingAssignments = await this.rolePermissionRepository.find({
-      where: { roleId, permissionId: In(permissionIds) },
+    const existingAssignments = await this.prisma.rolePermission.findMany({
+      where: { roleId, permissionId: { in: permissionIds } },
     });
 
     const existingPermissionIds = existingAssignments.map((rp) => rp.permissionId);
@@ -85,31 +77,33 @@ export class RolePermissionService {
     }
 
     // Create new assignments
-    const rolePermissions = newPermissionIds.map((permissionId) =>
-      this.rolePermissionRepository.create({ roleId, permissionId }),
-    );
+    await this.prisma.rolePermission.createMany({
+      data: newPermissionIds.map((permissionId) => ({ roleId, permissionId })),
+    });
 
-    const savedRolePermissions = await this.rolePermissionRepository.save(rolePermissions);
+    const created = await this.prisma.rolePermission.findMany({
+      where: { roleId, permissionId: { in: newPermissionIds } },
+    });
 
     this.logger.log(
       `✅ Bulk role permissions assigned: Role ${roleId} -> ${newPermissionIds.length} permissions`,
     );
-    return savedRolePermissions;
+    return created;
   }
 
   /**
    * Replace all role permissions (remove existing and add new)
    */
-  async replacePermissions(roleId: string, permissionIds: string[]): Promise<RolePermission[]> {
+  async replacePermissions(roleId: string, permissionIds: string[]): Promise<any[]> {
     // Verify role exists
-    const role = await this.roleRepository.findOne({ where: { id: roleId } });
+    const role = await this.prisma.role.findUnique({ where: { id: roleId } });
     if (!role) {
       throw SystemException.dataNotFound(`Role with ID '${roleId}' not found`);
     }
 
     // Verify all permissions exist
-    const permissions = await this.permissionRepository.find({
-      where: { id: In(permissionIds) },
+    const permissions = await this.prisma.permission.findMany({
+      where: { id: { in: permissionIds } },
     });
 
     if (permissions.length !== permissionIds.length) {
@@ -119,33 +113,40 @@ export class RolePermissionService {
     }
 
     // Remove existing assignments
-    await this.rolePermissionRepository.delete({ roleId });
+    await this.prisma.rolePermission.deleteMany({ where: { roleId } });
 
     // Create new assignments
-    const rolePermissions = permissionIds.map((permissionId) =>
-      this.rolePermissionRepository.create({ roleId, permissionId }),
-    );
+    if (permissionIds.length > 0) {
+      await this.prisma.rolePermission.createMany({
+        data: permissionIds.map((permissionId) => ({ roleId, permissionId })),
+      });
+    }
 
-    const savedRolePermissions = await this.rolePermissionRepository.save(rolePermissions);
+    const created = await this.prisma.rolePermission.findMany({
+      where: { roleId },
+    });
 
     this.logger.log(
       `✅ Role permissions replaced: Role ${roleId} -> ${permissionIds.length} permissions`,
     );
-    return savedRolePermissions;
+    return created;
   }
 
   /**
    * Find all role-permission assignments with optional pagination
    */
-  async findAll(page = 1, limit = 10): Promise<{ list: RolePermission[]; total: number }> {
+  async findAll(page = 1, limit = 10): Promise<{ list: any[]; total: number }> {
     const skip = (page - 1) * limit;
 
-    const [rolePermissions, total] = await this.rolePermissionRepository.findAndCount({
-      relations: ['role', 'permission'],
-      skip,
-      take: limit,
-      order: { createdAt: 'DESC' },
-    });
+    const [rolePermissions, total] = await this.prisma.$transaction([
+      this.prisma.rolePermission.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: { role: true, permission: true },
+      }),
+      this.prisma.rolePermission.count(),
+    ]);
 
     return { list: rolePermissions, total };
   }
@@ -153,45 +154,44 @@ export class RolePermissionService {
   /**
    * Find role-permission assignments by role ID
    */
-  async findByRoleId(roleId: string): Promise<RolePermission[]> {
-    const role = await this.roleRepository.findOne({ where: { id: roleId } });
+  async findByRoleId(roleId: string): Promise<any[]> {
+    const role = await this.prisma.role.findUnique({ where: { id: roleId } });
     if (!role) {
       throw SystemException.dataNotFound(`Role with ID '${roleId}' not found`);
     }
 
-    return await this.rolePermissionRepository.find({
+    return await this.prisma.rolePermission.findMany({
       where: { roleId },
-      relations: ['permission'],
-      order: { createdAt: 'DESC' },
+      include: { permission: true },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
   /**
    * Find role-permission assignments by permission ID
    */
-  async findByPermissionId(permissionId: string): Promise<RolePermission[]> {
-    const permission = await this.permissionRepository.findOne({ where: { id: permissionId } });
+  async findByPermissionId(permissionId: string): Promise<any[]> {
+    const permission = await this.prisma.permission.findUnique({ where: { id: permissionId } });
     if (!permission) {
       throw SystemException.dataNotFound(`Permission with ID '${permissionId}' not found`);
     }
 
-    return await this.rolePermissionRepository.find({
+    return await this.prisma.rolePermission.findMany({
       where: { permissionId },
-      relations: ['role'],
-      order: { createdAt: 'DESC' },
+      include: { role: true },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
   /**
    * Find specific role-permission assignment
    */
-  async findByRoleAndPermission(
-    roleId: string,
-    permissionId: string,
-  ): Promise<RolePermission | null> {
-    return await this.rolePermissionRepository.findOne({
-      where: { roleId, permissionId },
-      relations: ['role', 'permission'],
+  async findByRoleAndPermission(roleId: string, permissionId: string): Promise<any | null> {
+    return await this.prisma.rolePermission.findUnique({
+      where: {
+        uniq_role_permission: { roleId, permissionId },
+      },
+      include: { role: true, permission: true },
     });
   }
 
@@ -199,8 +199,10 @@ export class RolePermissionService {
    * Delete role-permission assignment
    */
   async delete(roleId: string, permissionId: string): Promise<void> {
-    const rolePermission = await this.rolePermissionRepository.findOne({
-      where: { roleId, permissionId },
+    const rolePermission = await this.prisma.rolePermission.findUnique({
+      where: {
+        uniq_role_permission: { roleId, permissionId },
+      },
     });
 
     if (!rolePermission) {
@@ -209,7 +211,11 @@ export class RolePermissionService {
       );
     }
 
-    await this.rolePermissionRepository.remove(rolePermission);
+    await this.prisma.rolePermission.delete({
+      where: {
+        uniq_role_permission: { roleId, permissionId },
+      },
+    });
     this.logger.log(`✅ Role permission removed: Role ${roleId} -> Permission ${permissionId}`);
   }
 
@@ -217,14 +223,14 @@ export class RolePermissionService {
    * Delete all role-permission assignments for a role
    */
   async deleteByRoleId(roleId: string): Promise<void> {
-    const role = await this.roleRepository.findOne({ where: { id: roleId } });
+    const role = await this.prisma.role.findUnique({ where: { id: roleId } });
     if (!role) {
       throw SystemException.dataNotFound(`Role with ID '${roleId}' not found`);
     }
 
-    const result = await this.rolePermissionRepository.delete({ roleId });
+    const result = await this.prisma.rolePermission.deleteMany({ where: { roleId } });
     this.logger.log(
-      `✅ All role permissions removed for role ${roleId}: ${result.affected} assignments`,
+      `✅ All role permissions removed for role ${roleId}: ${result.count} assignments`,
     );
   }
 
@@ -232,14 +238,14 @@ export class RolePermissionService {
    * Delete all role-permission assignments for a permission
    */
   async deleteByPermissionId(permissionId: string): Promise<void> {
-    const permission = await this.permissionRepository.findOne({ where: { id: permissionId } });
+    const permission = await this.prisma.permission.findUnique({ where: { id: permissionId } });
     if (!permission) {
       throw SystemException.dataNotFound(`Permission with ID '${permissionId}' not found`);
     }
 
-    const result = await this.rolePermissionRepository.delete({ permissionId });
+    const result = await this.prisma.rolePermission.deleteMany({ where: { permissionId } });
     this.logger.log(
-      `✅ All role permissions removed for permission ${permissionId}: ${result.affected} assignments`,
+      `✅ All role permissions removed for permission ${permissionId}: ${result.count} assignments`,
     );
   }
 
@@ -247,29 +253,31 @@ export class RolePermissionService {
    * Count role-permission assignments
    */
   async count(): Promise<number> {
-    return await this.rolePermissionRepository.count();
+    return await this.prisma.rolePermission.count();
   }
 
   /**
    * Count assignments by role ID
    */
   async countByRoleId(roleId: string): Promise<number> {
-    return await this.rolePermissionRepository.count({ where: { roleId } });
+    return await this.prisma.rolePermission.count({ where: { roleId } });
   }
 
   /**
    * Count assignments by permission ID
    */
   async countByPermissionId(permissionId: string): Promise<number> {
-    return await this.rolePermissionRepository.count({ where: { permissionId } });
+    return await this.prisma.rolePermission.count({ where: { permissionId } });
   }
 
   /**
    * Check if role has specific permission
    */
   async hasPermission(roleId: string, permissionId: string): Promise<boolean> {
-    const assignment = await this.rolePermissionRepository.findOne({
-      where: { roleId, permissionId },
+    const assignment = await this.prisma.rolePermission.findUnique({
+      where: {
+        uniq_role_permission: { roleId, permissionId },
+      },
     });
     return !!assignment;
   }
@@ -277,7 +285,7 @@ export class RolePermissionService {
   /**
    * Get permissions for role
    */
-  async getPermissionsByRole(roleId: string): Promise<Permission[]> {
+  async getPermissionsByRole(roleId: string): Promise<any[]> {
     const assignments = await this.findByRoleId(roleId);
     return assignments.map((assignment: any) => assignment.permission);
   }
@@ -285,7 +293,7 @@ export class RolePermissionService {
   /**
    * Get roles for permission
    */
-  async getRolesByPermission(permissionId: string): Promise<Role[]> {
+  async getRolesByPermission(permissionId: string): Promise<any[]> {
     const assignments = await this.findByPermissionId(permissionId);
     return assignments.map((assignment: any) => assignment.role);
   }
