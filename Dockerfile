@@ -13,6 +13,9 @@ RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY . .
 
+# 生成 Prisma Client（编译需要）
+RUN pnpm run prisma:generate
+
 # 编译 TypeScript → dist
 RUN pnpm run build
 
