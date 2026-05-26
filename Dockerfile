@@ -33,8 +33,15 @@ COPY --from=builder /app/pnpm-lock.yaml ./
 ENV HUSKY=0
 RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 
+# 复制 Prisma 配置和迁移文件
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+
 # 复制编译后的代码
 COPY --from=builder /app/dist ./dist
+
+# 生成 Prisma Client
+RUN pnpm run prisma:generate
 
 # 创建日志目录
 RUN mkdir -p /app/logs
