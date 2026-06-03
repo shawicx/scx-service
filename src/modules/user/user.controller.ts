@@ -501,7 +501,7 @@ export class UserController {
     return { hasPermission };
   }
 
-  @Get()
+  @Get('list')
   @UseGuards(AdminGuard)
   @ApiOperation({
     summary: '查询用户列表',
@@ -580,7 +580,7 @@ export class UserController {
     return this.userService.createUser(createUserDto);
   }
 
-  @Delete()
+  @Delete('batch-delete')
   @UseGuards(AdminGuard)
   @ApiOperation({
     summary: '删除用户（支持批量）',

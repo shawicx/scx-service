@@ -22,6 +22,7 @@ import { RoleModule } from '@/modules/role/role.module';
 import { UserRoleModule } from '@/modules/user-role/user-role.module';
 import { UserModule } from '@/modules/user/user.module';
 import { AiModule } from '@/modules/ai/ai.module';
+import { FileModule } from '@/modules/file/file.module';
 import { HealthModule } from '@/modules/health/health.module';
 import { SeedModule } from '@/modules/seed/seed.module';
 
@@ -43,6 +44,9 @@ import { SeedModule } from '@/modules/seed/seed.module';
 
     // AI 模块
     AiModule,
+
+    // 文件模块
+    FileModule,
 
     // 认证模块
     AuthModule,

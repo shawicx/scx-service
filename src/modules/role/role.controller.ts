@@ -13,7 +13,7 @@ import { RoleService } from './role.service';
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 
-  @Post()
+  @Post('create')
   @ApiOperation({
     summary: '创建角色',
     description: '创建新的角色，角色名称和代码必须唯一',
@@ -32,7 +32,7 @@ export class RoleController {
     return await this.roleService.create(createRoleDto);
   }
 
-  @Get()
+  @Get('list')
   @ApiOperation({
     summary: '获取角色列表',
     description: '分页获取所有角色列表',
@@ -116,7 +116,7 @@ export class RoleController {
     return await this.roleService.findByCode(code);
   }
 
-  @Put()
+  @Put('update')
   @ApiOperation({
     summary: '更新角色',
     description: '更新角色信息，系统内置角色无法修改',
@@ -143,7 +143,7 @@ export class RoleController {
     return await this.roleService.update(updateRoleDto.id, updateRoleDto);
   }
 
-  @Delete()
+  @Delete('delete')
   @ApiOperation({
     summary: '删除角色',
     description: '删除角色，系统内置角色无法删除',

@@ -15,7 +15,7 @@ import { PermissionService } from './permission.service';
 export class PermissionController {
   constructor(private readonly permissionService: PermissionService) {}
 
-  @Post()
+  @Post('create')
   @ApiOperation({
     summary: '创建权限',
     description: '创建新的权限，支持菜单和按钮类型',
@@ -34,7 +34,7 @@ export class PermissionController {
     return await this.permissionService.create(createPermissionDto);
   }
 
-  @Get()
+  @Get('list')
   @ApiOperation({
     summary: '获取权限列表',
     description: '分页获取权限列表，支持搜索和筛选',
@@ -230,7 +230,7 @@ export class PermissionController {
     return await this.permissionService.findById(id);
   }
 
-  @Put()
+  @Put('update')
   @ApiOperation({
     summary: '更新权限',
     description: '更新权限信息',
@@ -332,7 +332,7 @@ export class PermissionController {
     return await this.permissionService.getButtonsByMenuId(menuId);
   }
 
-  @Delete()
+  @Delete('delete')
   @ApiOperation({
     summary: '删除权限',
     description: '删除权限及其子权限，如果权限已分配给角色则无法删除',

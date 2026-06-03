@@ -33,6 +33,7 @@ model User {
   deletedAt DateTime?  @db.Timestamp
 
   userRoles UserRole[]
+  files     File[]
 
   @@index([email])
   @@index([isActive])
@@ -142,4 +143,25 @@ model AiRequest {
   @@index([provider])
   @@index([createdAt])
   @@map("ai_requests")
+}
+
+// File - 文件表
+model File {
+  id           String   @id @default(cuid())
+  userId       String   @db.Char(26)
+  originalName String   @db.VarChar(255)
+  mimeType     String   @db.VarChar(100)
+  size         Int
+  path         String   @db.VarChar(500)
+  url          String   @db.VarChar(500)
+
+  createdAt DateTime  @default(now()) @db.Timestamp
+  deletedAt DateTime? @db.Timestamp
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([mimeType])
+  @@index([createdAt])
+  @@map("files")
 }
