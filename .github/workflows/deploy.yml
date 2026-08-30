@@ -64,18 +64,18 @@ jobs:
           NODE_ENV=production
           PORT=${{ secrets.PORT || '3000' }}
 
-          # 数据库配置 (PostgreSQL)
-          DB_HOST=postgres
-          DB_PORT=5432
+          # 数据库配置（共享 scx-infra：scx-postgres 127.0.0.1:5433，库 scx-service）
+          DB_HOST=127.0.0.1
+          DB_PORT=5433
           DB_USERNAME=${{ secrets.DB_USERNAME }}
           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
           DB_DATABASE=${{ secrets.DB_DATABASE || 'scx-service' }}
 
-          # Redis 配置
-          REDIS_HOST=redis
-          REDIS_PORT=6379
-          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD || '' }}
-          REDIS_DB=0
+          # Redis 配置（共享 scx-infra：scx-redis 127.0.0.1:6388，db 1；共享实例未设密码）
+          REDIS_HOST=127.0.0.1
+          REDIS_PORT=6388
+          REDIS_PASSWORD=
+          REDIS_DB=1
 
           # JWT 配置（可选）
           JWT_SECRET=${{ secrets.JWT_SECRET || '' }}
@@ -129,6 +129,16 @@ jobs:
 
           # 加载镜像并启动
           docker load < scx-service-image.tar.gz
+
+          # 校验共享基础设施（scx-infra）运行
+          for C in scx-postgres scx-redis; do
+            if ! docker ps --format '{{.Names}}' | grep -q "^${C}$"; then
+              echo "ERROR: 共享容器 $C 未运行"
+              echo "请先在 ECS 上部署 scx-infra：cd /opt/scx-infra && docker compose up -d"
+              exit 1
+            fi
+          done
+
           docker compose --env-file .env -f docker-compose.prod.yml up -d --force-recreate
           rm -f scx-service-image.tar.gz
           docker image prune -f
@@ -137,8 +147,6 @@ jobs:
           sleep 10
           echo "=== Service status ==="
           docker ps -a | grep scx-service
-          docker logs scx-service-postgres --tail 30
-          docker logs scx-service-redis --tail 30
           docker logs scx-service-app --tail 30
           ENDSSH
 
