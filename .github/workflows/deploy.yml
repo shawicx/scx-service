@@ -71,10 +71,11 @@ jobs:
           DB_PASSWORD=${{ secrets.DB_PASSWORD }}
           DB_DATABASE=${{ secrets.DB_DATABASE || 'scx-service' }}
 
-          # Redis 配置（共享 scx-infra：scx-redis 127.0.0.1:6388，db 1；共享实例未设密码）
+          # Redis 配置（共享 scx-infra：scx-redis 127.0.0.1:6388，db 1，强制密码认证）
+          # REDIS_PASSWORD 需在 GitHub Secrets 配置，且与 scx-infra compose 中一致
           REDIS_HOST=127.0.0.1
           REDIS_PORT=6388
-          REDIS_PASSWORD=
+          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
           REDIS_DB=1
 
           # JWT 配置（可选）
